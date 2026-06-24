@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # ─── MySQL Database ────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: constructo-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-constructo_root_2024}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-constructo}
+      MYSQL_USER: ${MYSQL_USER:-constructo_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-constructo_pass_2024}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - constructo-network
+
+  # ─── Redis ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: constructo-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - constructo-network
+
+  # ─── FastAPI Backend ───────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: constructo-backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql+asyncmy://${MYSQL_USER:-constructo_user}:${MYSQL_PASSWORD:-constructo_pass_2024}@mysql:3306/${MYSQL_DATABASE:-constructo}
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-constructo-jwt-secret-key-change-in-production}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
+      - MSG91_AUTH_KEY=${MSG91_AUTH_KEY:-}
+      - MSG91_TEMPLATE_ID=${MSG91_TEMPLATE_ID:-}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-}
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:5175
+      - ENVIRONMENT=development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - constructo-network
+
+  # ─── Celery Worker ─────────────────────────────────────────────────
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: constructo-celery-worker
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql+asyncmy://${MYSQL_USER:-constructo_user}:${MYSQL_PASSWORD:-constructo_pass_2024}@mysql:3306/${MYSQL_DATABASE:-constructo}
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    networks:
+      - constructo-network
+
+  # ─── Celery Beat ───────────────────────────────────────────────────
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: constructo-celery-beat
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql+asyncmy://${MYSQL_USER:-constructo_user}:${MYSQL_PASSWORD:-constructo_pass_2024}@mysql:3306/${MYSQL_DATABASE:-constructo}
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.core.celery_app beat --loglevel=info
+    networks:
+      - constructo-network
+
+  # ─── Nginx Reverse Proxy ──────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: constructo-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - backend
+    networks:
+      - constructo-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  constructo-network:
+    driver: bridge
