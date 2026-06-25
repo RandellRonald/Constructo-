@@ -135,6 +135,10 @@ async def verify_payment(
         # Generate verification code
         import random
         booking.verification_code = str(random.randint(100000, 999999))
+        
+        # Trigger provider matching
+        from app.services.matching_service import MatchingService
+        await MatchingService.match_and_assign(db, booking)
 
     await db.flush()
 

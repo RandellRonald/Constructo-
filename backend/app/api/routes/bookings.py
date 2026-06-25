@@ -3,7 +3,7 @@ Booking and service API routes.
 """
 import uuid
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel, Field
@@ -181,12 +181,44 @@ async def get_active_booking(
 async def get_booking_history(
     user: User = Depends(require_customer),
     db: AsyncSession = Depends(get_db),
+    status_filter: Optional[str] = Query(None, alias="status", pattern="^(active|completed|cancelled)$"),
+    search: Optional[str] = Query(None, max_length=100),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
 ):
-    """Get customer's booking history."""
+    """Get customer's booking history with optional filters."""
+    query = select(Booking).where(Booking.customer_id == user.id)
+
+    # Status filter
+    if status_filter == "active":
+        query = query.where(Booking.status.in_([
+            BookingStatus.CREATED, BookingStatus.SEARCHING,
+            BookingStatus.ASSIGNED, BookingStatus.EN_ROUTE,
+            BookingStatus.ARRIVED, BookingStatus.VERIFIED,
+            BookingStatus.IN_PROGRESS, BookingStatus.PAYMENT_PENDING,
+        ]))
+    elif status_filter == "completed":
+        query = query.where(Booking.status == BookingStatus.COMPLETED)
+    elif status_filter == "cancelled":
+        query = query.where(Booking.status == BookingStatus.CANCELLED)
+
+    # Search by booking number or address
+    if search:
+        query = query.where(
+            Booking.booking_number.ilike(f"%{search}%")
+            | Booking.pickup_address.ilike(f"%{search}%")
+        )
+
+    # Count total
+    from sqlalchemy import func as sa_func
+    count_query = select(sa_func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    # Paginate
+    offset = (page - 1) * limit
     result = await db.execute(
-        select(Booking).where(
-            Booking.customer_id == user.id,
-        ).order_by(desc(Booking.created_at)).limit(20)
+        query.order_by(desc(Booking.created_at)).offset(offset).limit(limit)
     )
     bookings = result.scalars().all()
 
@@ -206,7 +238,11 @@ async def get_booking_history(
                 "is_emergency": b.is_emergency,
                 "created_at": b.created_at.isoformat() if b.created_at else None,
                 "completed_at": b.completed_at.isoformat() if b.completed_at else None,
-            } for b in bookings]
+            } for b in bookings],
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total + limit - 1) // limit if total > 0 else 0,
         },
     )
 
@@ -246,5 +282,53 @@ async def get_booking(
             "provider_id": booking.provider_id,
             "verification_code": booking.verification_code,
             "created_at": booking.created_at.isoformat() if booking.created_at else None,
+        },
+    )
+
+
+@router.post("/{booking_id}/cancel", response_model=APIResponse)
+async def cancel_booking(
+    booking_id: int,
+    user: User = Depends(require_customer),
+    db: AsyncSession = Depends(get_db),
+):
+    """Cancel a booking. Only allowed before provider starts work."""
+    from datetime import datetime, timezone
+
+    result = await db.execute(
+        select(Booking).where(Booking.id == booking_id, Booking.customer_id == user.id)
+    )
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    cancellable_statuses = [
+        BookingStatus.DRAFT, BookingStatus.PAYMENT_PENDING,
+        BookingStatus.CREATED, BookingStatus.SEARCHING,
+        BookingStatus.ASSIGNED, BookingStatus.EN_ROUTE,
+    ]
+    if booking.status not in cancellable_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot cancel booking in '{booking.status.value}' status",
+        )
+
+    # Determine refund eligibility
+    refund_eligible = booking.status in [
+        BookingStatus.DRAFT, BookingStatus.PAYMENT_PENDING,
+        BookingStatus.CREATED, BookingStatus.SEARCHING,
+    ]
+
+    booking.status = BookingStatus.CANCELLED
+    booking.cancelled_at = datetime.now(timezone.utc)
+    await db.flush()
+
+    return APIResponse(
+        success=True,
+        message="Booking cancelled",
+        data={
+            "booking_id": booking.id,
+            "refund_eligible": refund_eligible,
+            "status": booking.status.value,
         },
     )

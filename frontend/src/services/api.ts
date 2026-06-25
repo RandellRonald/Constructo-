@@ -136,4 +136,18 @@ export const profileAPI = {
   }),
 }
 
+// ─── Admin API ───────────────────────────────────────────────────
+export const adminAPI = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getUsers: (params?: Record<string, unknown>) => api.get('/admin/users', { params }),
+  updateUserStatus: (id: number, status: string) => api.put(`/admin/users/${id}/status`, { status }),
+  getBookings: (params?: Record<string, unknown>) => api.get('/admin/bookings', { params }),
+  getPayouts: (status?: string) => api.get('/admin/payouts', { params: { status } }),
+  approvePayout: (id: number, data: { status: 'completed' | 'rejected'; bank_reference?: string; notes?: string }) =>
+    api.post(`/admin/payouts/${id}/approve`, data),
+  getServices: () => api.get('/admin/services'),
+  createService: (data: Record<string, unknown>) => api.post('/admin/services', data),
+  updateService: (id: number, data: Record<string, unknown>) => api.put(`/admin/services/${id}`, data),
+}
+
 export default api

@@ -24,6 +24,8 @@ const ProviderProfilePage = lazy(() => import('./features/provider/profile/Provi
 const CompletionReview = lazy(() => import('./features/customer/completion/CompletionReview'))
 const InvoicePage = lazy(() => import('./features/customer/invoice/InvoicePage'))
 const ReviewPage = lazy(() => import('./features/customer/reviews/ReviewPage'))
+const AdminLogin = lazy(() => import('./features/admin/AdminLogin'))
+const AdminDashboard = lazy(() => import('./features/admin/AdminDashboard'))
 
 // Loading fallback
 function PageLoader() {
@@ -110,6 +112,12 @@ export default function App() {
         } />
         <Route path="/provider/profile" element={
           <ProtectedRoute role="provider"><ProviderProfilePage /></ProtectedRoute>
+        } />
+
+        {/* Admin Protected Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>
         } />
 
         {/* Catch-all */}

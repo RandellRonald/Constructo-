@@ -3,6 +3,9 @@ Authentication API routes.
 """
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from pydantic import BaseModel, Field
+from typing import Optional
 
 from app.db.session import get_db
 from app.api.deps import get_current_user
@@ -199,3 +202,74 @@ async def refresh_tokens(
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+
+class UpdateProfileRequest(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=255)
+    email: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, min_length=10, max_length=15)
+    business_name: Optional[str] = Field(None, max_length=255)
+    district: Optional[str] = Field(None, max_length=100)
+
+
+@router.put("/profile", response_model=APIResponse)
+async def update_profile(
+    request: UpdateProfileRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update current user's profile."""
+    if request.name is not None:
+        user.name = request.name
+    if request.email is not None:
+        # Check uniqueness
+        existing = await db.execute(
+            select(User).where(User.email == request.email, User.id != user.id)
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Email already in use")
+        user.email = request.email
+    if request.phone is not None:
+        existing = await db.execute(
+            select(User).where(User.phone == request.phone, User.id != user.id)
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Phone already in use")
+        user.phone = request.phone
+    if request.business_name is not None:
+        user.business_name = request.business_name
+    if request.district is not None:
+        user.district = request.district
+
+    await db.flush()
+    await db.refresh(user)
+
+    return APIResponse(
+        success=True,
+        message="Profile updated",
+        data={"user": UserResponse.model_validate(user).model_dump()},
+    )
+
+
+@router.post("/profile/photo", response_model=APIResponse)
+async def update_profile_photo(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update profile photo. Accepts multipart form with 'photo' field.
+    For now, stores a placeholder URL. In production, upload to Cloudinary.
+    """
+    # In production, use Cloudinary to upload the image:
+    # file = await request.form()
+    # result = cloudinary.uploader.upload(file['photo'].file)
+    # user.profile_photo_url = result['secure_url']
+
+    # Dev fallback — just acknowledge the upload
+    user.profile_photo_url = f"/api/v1/static/avatars/{user.id}.jpg"
+    await db.flush()
+
+    return APIResponse(
+        success=True,
+        message="Profile photo updated",
+        data={"profile_photo_url": user.profile_photo_url},
+    )

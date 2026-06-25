@@ -98,6 +98,52 @@ async def get_notifications(
     )
 
 
+@router.post("/notifications/{notification_id}/read", response_model=APIResponse)
+async def mark_notification_read(
+    notification_id: int,
+    user: User = Depends(require_customer),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark a single notification as read."""
+    from datetime import datetime, timezone
+
+    result = await db.execute(
+        select(Notification).where(
+            Notification.id == notification_id,
+            Notification.user_id == user.id,
+        )
+    )
+    notif = result.scalar_one_or_none()
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    notif.is_read = True
+    notif.read_at = datetime.now(timezone.utc)
+    await db.flush()
+
+    return APIResponse(success=True, message="Notification marked as read")
+
+
+@router.post("/notifications/read-all", response_model=APIResponse)
+async def mark_all_notifications_read(
+    user: User = Depends(require_customer),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark all notifications as read for the customer."""
+    from datetime import datetime, timezone
+    from sqlalchemy import update
+
+    await db.execute(
+        update(Notification).where(
+            Notification.user_id == user.id,
+            Notification.is_read == False,
+        ).values(is_read=True, read_at=datetime.now(timezone.utc))
+    )
+    await db.flush()
+
+    return APIResponse(success=True, message="All notifications marked as read")
+
+
 def _serialize_booking(booking: Booking) -> dict:
     return {
         "id": booking.id,

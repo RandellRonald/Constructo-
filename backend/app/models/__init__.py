@@ -8,6 +8,7 @@ from app.models.payment import Payment, Refund
 from app.models.tracking import TrackingLog
 from app.models.review import Review, ReviewPhoto
 from app.models.invoice import Invoice
+from app.models.payout import Payout, ProviderEarning
 
 __all__ = [
     "User", "OTPVerification", "UserSession", "Notification", "SavedLocation",
@@ -17,4 +18,5 @@ __all__ = [
     "TrackingLog",
     "Review", "ReviewPhoto",
     "Invoice",
+    "Payout", "ProviderEarning",
 ]
