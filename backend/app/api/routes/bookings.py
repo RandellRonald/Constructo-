@@ -10,10 +10,13 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 from app.db.session import get_db
-from app.api.deps import require_customer
+from app.api.deps import require_customer, get_current_user
 from app.models.user import User
 from app.models.booking import Booking, BookingStatus, ServiceCategory, BookingPhoto
 from app.schemas.auth import APIResponse
+from app.models.chat import ChatMessage
+from app.services.coverage_service import CoverageService
+from app.services.pricing_service import PricingService
 
 router = APIRouter()
 
@@ -33,6 +36,8 @@ class CalculatePriceRequest(BaseModel):
     service_category_id: int
     duration_hours: float = Field(..., gt=0)
     is_emergency: bool = False
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 
 @router.post("/calculate-price", response_model=APIResponse)
@@ -42,31 +47,31 @@ async def calculate_price(
     db: AsyncSession = Depends(get_db),
 ):
     """Calculate estimated price for a booking."""
-    result = await db.execute(
-        select(ServiceCategory).where(ServiceCategory.id == request.service_category_id)
-    )
-    category = result.scalar_one_or_none()
-    if not category:
-        raise HTTPException(status_code=404, detail="Service category not found")
+    district = "Ernakulam"
+    if request.latitude is not None and request.longitude is not None:
+        coverage = CoverageService.verify_coverage(request.latitude, request.longitude)
+        if not coverage:
+            raise HTTPException(
+                status_code=400,
+                detail="Sorry, this location is outside our service coverage boundaries in Kerala."
+            )
+        district = coverage["district"]
 
-    base_price = float(category.base_hourly_rate) * request.duration_hours
-    emergency_fee = float(category.emergency_fee) if request.is_emergency else 0
-    reservation_fee = float(category.reservation_fee)
-    tax = round(base_price * 0.18, 2)  # 18% GST
-    total = round(base_price + emergency_fee + reservation_fee + tax, 2)
-
-    return APIResponse(
-        success=True,
-        message="Price calculated",
-        data={
-            "base_price": base_price,
-            "emergency_fee": emergency_fee,
-            "reservation_fee": reservation_fee,
-            "tax": tax,
-            "estimated_total": total,
-            "hourly_rate": float(category.base_hourly_rate),
-        },
-    )
+    try:
+        price_data = await PricingService.calculate_booking_price(
+            db=db,
+            service_category_id=request.service_category_id,
+            duration_hours=request.duration_hours,
+            district=district,
+            is_emergency=request.is_emergency
+        )
+        return APIResponse(
+            success=True,
+            message="Price calculated successfully",
+            data=price_data,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
 
 
 @router.post("", response_model=APIResponse)
@@ -76,18 +81,31 @@ async def create_booking(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new booking."""
-    # Validate service category
-    result = await db.execute(
-        select(ServiceCategory).where(ServiceCategory.id == request.service_category_id)
-    )
-    category = result.scalar_one_or_none()
-    if not category:
-        raise HTTPException(status_code=404, detail="Service category not found")
+    # Verify coverage boundary
+    coverage = CoverageService.verify_coverage(request.pickup_latitude, request.pickup_longitude)
+    if not coverage:
+        raise HTTPException(
+            status_code=400,
+            detail="Sorry, the requested coordinates are outside our service coverage boundaries in Kerala."
+        )
+    district = coverage["district"]
 
-    # Calculate pricing
-    base_price = Decimal(str(float(category.base_hourly_rate) * request.duration_hours))
-    emergency_fee = category.emergency_fee if request.is_emergency else Decimal("0")
-    reservation_fee = category.reservation_fee
+    # Calculate dynamic pricing
+    try:
+        price_data = await PricingService.calculate_booking_price(
+            db=db,
+            service_category_id=request.service_category_id,
+            duration_hours=request.duration_hours,
+            district=district,
+            is_emergency=request.is_emergency
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+
+    # Base price plus surcharges
+    subtotal = Decimal(str(price_data["base_price"] + price_data["peak_surcharge"] + price_data["surge_surcharge"]))
+    emergency_fee = Decimal(str(price_data["emergency_fee"]))
+    reservation_fee = Decimal(str(price_data["reservation_fee"]))
 
     booking_number = f"CON-{uuid.uuid4().hex[:8].upper()}"
 
@@ -101,7 +119,7 @@ async def create_booking(
         description=request.description,
         duration_hours=request.duration_hours,
         is_emergency=request.is_emergency,
-        estimated_price=base_price,
+        estimated_price=subtotal,
         reservation_fee=reservation_fee,
         emergency_fee=emergency_fee,
         status=BookingStatus.PAYMENT_PENDING,
@@ -332,3 +350,49 @@ async def cancel_booking(
             "status": booking.status.value,
         },
     )
+
+
+# ─── Chat History ─────────────────────────────────────────────────
+
+@router.get("/{booking_id}/chat-history", response_model=APIResponse)
+async def get_chat_history(
+    booking_id: int,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve chat history for a booking."""
+    # Verify booking exists and user has access (customer or provider)
+    result = await db.execute(select(Booking).where(Booking.id == booking_id))
+    booking = result.scalar_one_or_none()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    if booking.customer_id != user.id and booking.provider_id != user.id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to access this chat history")
+
+    chat_result = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.booking_id == booking_id)
+        .order_by(ChatMessage.created_at.asc())
+    )
+    messages = chat_result.scalars().all()
+
+    # Load sender names
+    chat_list = []
+    for msg in messages:
+        sender_res = await db.execute(select(User.name).where(User.id == msg.sender_id))
+        sender_name = sender_res.scalar() or "Unknown"
+        chat_list.append({
+            "id": msg.id,
+            "sender_id": msg.sender_id,
+            "sender_name": sender_name,
+            "message": msg.message,
+            "created_at": msg.created_at.isoformat() if msg.created_at else None,
+        })
+
+    return APIResponse(
+        success=True,
+        message="Chat history loaded successfully",
+        data=chat_list
+    )
+

@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
 
     # ─── Database ─────────────────────────────────────────────────
-    DATABASE_URL: str = "mysql+asyncmy://constructo_user:constructo_pass_2024@localhost:3306/constructo"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./constructo.db"
 
     # ─── Redis ────────────────────────────────────────────────────
     REDIS_URL: str = "redis://localhost:6379/0"

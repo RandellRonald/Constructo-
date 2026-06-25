@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bell, User, Navigation, MapPin, Phone, MessageCircle, 
   Wallet, CheckCircle2, Siren, Home, Calendar, Clock,
-  TrendingUp, CreditCard, ChevronRight
+  TrendingUp, CreditCard, ChevronRight, X, AlertTriangle
 } from 'lucide-react'
 import { useAuthStore } from '../../../stores/authStore'
 import { providerAPI } from '../../../services/api'
@@ -13,28 +13,148 @@ export default function ProviderDashboard() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
+  
   const [activeJob, setActiveJob] = useState<any>(null)
   const [stats, setStats] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Job Offer states
+  const [incomingOffer, setIncomingOffer] = useState<any>(null)
+  const [showOfferModal, setShowOfferModal] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [responding, setResponding] = useState(false)
+  const [respondError, setRespondError] = useState('')
+
   useEffect(() => {
     loadDashboard()
+    checkActiveOffers()
+
+    // Polling fallback
+    const interval = setInterval(() => {
+      checkActiveOffers()
+      loadDashboard()
+    }, 10000)
+
+    return () => clearInterval(interval)
   }, [])
+
+  // WebSocket for Job Offers
+  useEffect(() => {
+    if (!user?.id) return
+
+    const baseWs = import.meta.env.VITE_WS_URL || 'ws://localhost:8000'
+    const wsUrl = `${baseWs}/ws/provider/${user.id}`
+    let ws: WebSocket
+
+    const connectWS = () => {
+      ws = new WebSocket(wsUrl)
+      
+      ws.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data)
+          if (payload.type === 'job_offer') {
+            setIncomingOffer(payload.data)
+            setShowOfferModal(true)
+            
+            // Calculate initial time left in seconds
+            const expiry = new Date(payload.data.expires_at).getTime()
+            const now = new Date().getTime()
+            setTimeLeft(Math.max(0, Math.floor((expiry - now) / 1000)))
+          }
+        } catch (err) {
+          console.error('Error parsing WS message:', err)
+        }
+      }
+
+      ws.onclose = () => {
+        // Auto-reconnect after 5s
+        setTimeout(connectWS, 5000)
+      }
+    }
+
+    connectWS()
+
+    return () => {
+      if (ws) ws.close()
+    }
+  }, [user?.id])
+
+  // Timer countdown
+  useEffect(() => {
+    if (!showOfferModal || timeLeft <= 0) {
+      if (timeLeft === 0 && showOfferModal) {
+        setShowOfferModal(false)
+        setIncomingOffer(null)
+      }
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setTimeLeft(prev => prev - 1)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [showOfferModal, timeLeft])
 
   const loadDashboard = async () => {
     try {
       const res = await providerAPI.getDashboard()
       if (res.data.success) {
         const data = res.data.data
-        if (data?.active_job) setActiveJob(data.active_job)
+        if (data?.active_job) {
+          setActiveJob(data.active_job)
+        } else {
+          setActiveJob(null)
+        }
         if (data?.stats) setStats(data.stats)
       }
     } catch (err) {
       console.error('Failed to load provider dashboard:', err)
-      // Graceful fallback – show empty state
-      setStats({ today_earnings: 0, completed_jobs: 0, rating: user?.average_rating || 0, total_reviews: user?.total_reviews || 0 })
+      setStats({ 
+        today_earnings: 0, 
+        completed_jobs: 0, 
+        rating: user?.average_rating || 0, 
+        total_reviews: user?.total_reviews || 0 
+      })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const checkActiveOffers = async () => {
+    try {
+      const res = await providerAPI.getOffers()
+      if (res.data.success && res.data.data.length > 0) {
+        const offer = res.data.data[0]
+        setIncomingOffer(offer)
+        setShowOfferModal(true)
+
+        const expiry = new Date(offer.expires_at).getTime()
+        const now = new Date().getTime()
+        setTimeLeft(Math.max(0, Math.floor((expiry - now) / 1000)))
+      }
+    } catch (err) {
+      console.error('Failed to fetch active offers:', err)
+    }
+  }
+
+  const handleRespond = async (action: 'accept' | 'decline') => {
+    if (!incomingOffer) return
+    setResponding(true)
+    setRespondError('')
+    try {
+      const res = await providerAPI.respondToOffer(incomingOffer.offer_id, action)
+      if (res.data.success) {
+        setShowOfferModal(false)
+        setIncomingOffer(null)
+        loadDashboard()
+      } else {
+        setRespondError(res.data.message || 'Action failed.')
+      }
+    } catch (err: any) {
+      setRespondError(err.response?.data?.detail || 'Response failed.')
+    } finally {
+      setResponding(false)
     }
   }
 
@@ -131,14 +251,14 @@ export default function ProviderDashboard() {
             <div className={`glass-card p-5 border-l-4 ${activeJob.is_emergency ? 'border-l-danger' : 'border-l-accent'}`}>
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="font-bold text-sm mb-1">{activeJob.customer_name}</p>
+                  <p className="font-bold text-sm mb-1">{activeJob.customer_name || 'Customer'}</p>
                   <p className="text-text-secondary text-xs flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" />
                     {activeJob.pickup_address}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-secondary text-sm">₹{activeJob.estimated_earnings}</p>
+                  <p className="font-bold text-secondary text-sm">₹{activeJob.estimated_price}</p>
                   <p className="text-text-muted text-[10px]">Est. Payout</p>
                 </div>
               </div>
@@ -164,18 +284,12 @@ export default function ProviderDashboard() {
                 >
                   <Navigation className="w-4 h-4" /> Start Navigation
                 </button>
-                <button className="py-2.5 rounded-xl font-semibold border border-border hover:bg-black/5 flex items-center justify-center gap-2 text-xs">
-                  <Phone className="w-3.5 h-3.5" /> Call
-                </button>
-                <button className="py-2.5 rounded-xl font-semibold border border-border hover:bg-black/5 flex items-center justify-center gap-2 text-xs">
-                  <MessageCircle className="w-3.5 h-3.5" /> Chat
-                </button>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Incoming Requests (Placeholder) */}
+        {/* Incoming Requests */}
         {!activeJob && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <h3 className="font-bold text-sm mb-3">Incoming Requests</h3>
@@ -192,7 +306,10 @@ export default function ProviderDashboard() {
         {/* Wallet & Payouts */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="glass-card p-0 overflow-hidden">
-            <button className="w-full flex items-center justify-between p-4 hover:bg-black/5 transition-colors">
+            <button 
+              onClick={() => navigate('/provider/wallet')}
+              className="w-full flex items-center justify-between p-4 hover:bg-black/5 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-secondary" />
@@ -205,7 +322,10 @@ export default function ProviderDashboard() {
               <ChevronRight className="w-5 h-5 text-text-muted" />
             </button>
             <div className="w-full h-px bg-border" />
-            <button className="w-full flex items-center justify-between p-4 hover:bg-black/5 transition-colors">
+            <button 
+              onClick={() => navigate('/provider/jobs')}
+              className="w-full flex items-center justify-between p-4 hover:bg-black/5 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-warning" />
@@ -221,6 +341,101 @@ export default function ProviderDashboard() {
         </motion.div>
 
       </div>
+
+      {/* ─── Timed Dispatch Job Offer Modal ─── */}
+      <AnimatePresence>
+        {showOfferModal && incomingOffer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/75 backdrop-blur-md" />
+            
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-card w-full max-w-md p-6 relative z-10 text-text overflow-hidden"
+            >
+              {incomingOffer.is_emergency && (
+                <div className="absolute top-0 left-0 right-0 bg-danger text-white text-[10px] font-black uppercase tracking-wider py-1 text-center flex items-center justify-center gap-1">
+                  <Siren className="w-3.5 h-3.5 animate-pulse" /> Emergency Booking – Broadcast Active
+                </div>
+              )}
+
+              <div className="pt-4 text-center">
+                {/* Countdown display */}
+                <div className="relative w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                  <svg className="absolute w-full h-full transform -rotate-90">
+                    <circle 
+                      cx="48" 
+                      cy="48" 
+                      r="42" 
+                      stroke="rgba(255,255,255,0.05)" 
+                      strokeWidth="6" 
+                      fill="transparent" 
+                    />
+                    <circle 
+                      cx="48" 
+                      cy="48" 
+                      r="42" 
+                      stroke={incomingOffer.is_emergency ? "var(--color-danger)" : "var(--color-accent)"}
+                      strokeWidth="6" 
+                      fill="transparent" 
+                      strokeDasharray="264"
+                      strokeDashoffset={264 - (264 * timeLeft) / (incomingOffer.is_emergency ? 300 : 120)}
+                      className="transition-all duration-1000 ease-linear"
+                    />
+                  </svg>
+                  <div className="text-center">
+                    <p className="text-2xl font-black">{timeLeft}s</p>
+                    <p className="text-[8px] uppercase tracking-wider text-text-muted">Remaining</p>
+                  </div>
+                </div>
+
+                <h3 className="font-extrabold text-lg text-primary">{incomingOffer.service_name}</h3>
+                <p className="text-text-secondary text-xs mt-1 mb-4 flex items-center justify-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-accent" /> {incomingOffer.pickup_address}
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 bg-black/5 p-4 rounded-xl border border-border/50 text-left mb-5">
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Estimated Payout</p>
+                    <p className="text-xl font-bold text-success">₹{incomingOffer.estimated_earnings?.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Job Duration</p>
+                    <p className="text-xl font-bold text-primary">{incomingOffer.duration_hours} Hours</p>
+                  </div>
+                </div>
+
+                {respondError && (
+                  <div className="p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-xs mb-4 flex gap-2 justify-center">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>{respondError}</span>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => handleRespond('decline')}
+                    disabled={responding}
+                    className="flex-1 py-3 bg-black/10 hover:bg-black/20 rounded-xl font-bold text-sm transition-colors text-text-secondary"
+                  >
+                    Decline
+                  </button>
+                  <button 
+                    onClick={() => handleRespond('accept')}
+                    disabled={responding}
+                    className="flex-1 py-3 bg-accent hover:bg-accent-dark text-white rounded-xl font-bold text-sm shadow-lg shadow-accent/20 flex justify-center items-center"
+                  >
+                    {responding ? (
+                      <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    ) : "Accept Job"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 glass-nav border-t border-border px-4 py-2 z-30">
@@ -247,3 +462,4 @@ export default function ProviderDashboard() {
     </div>
   )
 }
+

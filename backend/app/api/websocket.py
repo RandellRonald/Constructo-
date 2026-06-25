@@ -3,6 +3,8 @@ import json
 import logging
 from typing import Dict, Set
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from app.db.session import AsyncSessionLocal
+from app.models.chat import ChatMessage
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -82,3 +84,41 @@ async def provider_websocket(websocket: WebSocket, provider_id: int):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
+
+
+@router.websocket("/ws/chat/{booking_id}")
+async def chat_websocket(websocket: WebSocket, booking_id: int):
+    channel = f"chat_{booking_id}"
+    await manager.connect(websocket, channel)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message_data = json.loads(data)
+            
+            sender_id = message_data.get("sender_id")
+            text_message = message_data.get("message")
+            
+            if not sender_id or not text_message:
+                continue
+
+            # Save message to database
+            async with AsyncSessionLocal() as db:
+                chat_msg = ChatMessage(
+                    booking_id=booking_id,
+                    sender_id=int(sender_id),
+                    message=text_message
+                )
+                db.add(chat_msg)
+                await db.flush()
+                await db.commit()
+                created_at_str = chat_msg.created_at.isoformat() if chat_msg.created_at else None
+
+            # Broadcast back to room
+            await manager.send_to_channel(channel, {
+                "sender_id": sender_id,
+                "message": text_message,
+                "created_at": created_at_str
+            })
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, channel)
+

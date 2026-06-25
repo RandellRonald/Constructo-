@@ -172,3 +172,26 @@ class OvertimeCharge(Base, TimestampMixin):
 
     # Relationships
     booking = relationship("Booking", back_populates="overtime_charges")
+
+
+class OfferStatus(str, enum.Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    EXPIRED = "expired"
+
+
+class BookingDispatchOffer(Base, TimestampMixin):
+    """Offers sent to individual providers for bookings."""
+    __tablename__ = "booking_dispatch_offers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(Enum(OfferStatus), default=OfferStatus.PENDING, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+
+    # Relationships
+    booking = relationship("Booking")
+    provider = relationship("User")
+

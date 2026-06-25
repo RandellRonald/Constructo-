@@ -12,7 +12,7 @@ from typing import Optional
 from app.db.session import get_db
 from app.api.deps import require_provider
 from app.models.user import User
-from app.models.booking import Booking, BookingStatus
+from app.models.booking import Booking, BookingStatus, BookingDispatchOffer, OfferStatus
 from app.models.payment import Payment, PaymentStatus
 from app.models.payout import Payout, ProviderEarning, PayoutStatus
 from app.schemas.auth import APIResponse
@@ -32,6 +32,17 @@ class UpdateJobStatusRequest(BaseModel):
 class PayoutRequest(BaseModel):
     amount: float = Field(..., gt=0)
     notes: Optional[str] = None
+
+
+class RespondToOfferRequest(BaseModel):
+    action: str = Field(..., pattern="^(accept|decline)$")
+
+
+class BankDetailsRequest(BaseModel):
+    bank_name: str = Field(..., min_length=2, max_length=255)
+    bank_account_number: str = Field(..., min_length=5, max_length=255)
+    bank_ifsc: str = Field(..., min_length=5, max_length=50)
+    bank_account_name: str = Field(..., min_length=2, max_length=255)
 
 
 # ─── Helper: serialize booking for provider ──────────────────────
@@ -333,6 +344,13 @@ async def request_payout(
     db: AsyncSession = Depends(get_db),
 ):
     """Request a payout from wallet balance."""
+    # Check bank details setup
+    if not user.bank_account_number or not user.bank_ifsc or not user.bank_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please set up your bank details in your wallet settings before requesting a payout.",
+        )
+
     # Calculate available balance
     total_earnings_result = await db.execute(
         select(func.coalesce(func.sum(ProviderEarning.amount), 0)).where(
@@ -489,3 +507,120 @@ async def update_job_status(
         message=f"Status updated to '{new_status}'",
         data=_serialize_provider_booking(booking),
     )
+
+
+# ─── Bank Details ─────────────────────────────────────────────────
+
+@router.get("/provider/bank-details", response_model=APIResponse)
+async def get_bank_details(
+    user: User = Depends(require_provider),
+):
+    """Get provider's bank details for payouts."""
+    return APIResponse(
+        success=True,
+        message="Bank details retrieved successfully",
+        data={
+            "bank_name": user.bank_name,
+            "bank_account_number": user.bank_account_number,
+            "bank_ifsc": user.bank_ifsc,
+            "bank_account_name": user.bank_account_name,
+        }
+    )
+
+
+@router.post("/provider/bank-details", response_model=APIResponse)
+async def update_bank_details(
+    request: BankDetailsRequest,
+    user: User = Depends(require_provider),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update provider's bank details for payouts."""
+    user.bank_name = request.bank_name
+    user.bank_account_number = request.bank_account_number
+    user.bank_ifsc = request.bank_ifsc
+    user.bank_account_name = request.bank_account_name
+    
+    await db.flush()
+    
+    return APIResponse(
+        success=True,
+        message="Bank details updated successfully",
+        data={
+            "bank_name": user.bank_name,
+            "bank_account_number": user.bank_account_number,
+            "bank_ifsc": user.bank_ifsc,
+            "bank_account_name": user.bank_account_name,
+        }
+    )
+
+
+# ─── Job Offers ───────────────────────────────────────────────────
+
+@router.get("/provider/offers", response_model=APIResponse)
+async def get_active_offers(
+    user: User = Depends(require_provider),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve list of active pending job offers for provider."""
+    now = datetime.now(timezone.utc)
+    
+    # Select pending offers that haven't expired yet
+    result = await db.execute(
+        select(BookingDispatchOffer)
+        .where(
+            BookingDispatchOffer.provider_id == user.id,
+            BookingDispatchOffer.status == OfferStatus.PENDING,
+            BookingDispatchOffer.expires_at > now
+        )
+    )
+    offers = result.scalars().all()
+    
+    offers_list = []
+    for offer in offers:
+        booking_res = await db.execute(select(Booking).where(Booking.id == offer.booking_id))
+        booking = booking_res.scalar_one_or_none()
+        if not booking:
+            continue
+            
+        from app.models.booking import ServiceCategory
+        cat_res = await db.execute(select(ServiceCategory.name).where(ServiceCategory.id == booking.service_category_id))
+        service_name = cat_res.scalar() or "Site Service"
+
+        offers_list.append({
+            "offer_id": offer.id,
+            "booking_id": booking.id,
+            "booking_number": booking.booking_number,
+            "service_name": service_name,
+            "pickup_address": booking.pickup_address,
+            "duration_hours": booking.duration_hours,
+            "estimated_earnings": float(booking.estimated_price) * 0.8,
+            "is_emergency": booking.is_emergency,
+            "expires_at": offer.expires_at.isoformat(),
+        })
+
+    return APIResponse(
+        success=True,
+        message="Active offers loaded",
+        data=offers_list
+    )
+
+
+@router.post("/provider/offers/{offer_id}/respond", response_model=APIResponse)
+async def respond_to_offer(
+    offer_id: int,
+    request: RespondToOfferRequest,
+    user: User = Depends(require_provider),
+    db: AsyncSession = Depends(get_db),
+):
+    """Provider responds (accept/decline) to a job offer."""
+    from app.services.matching_service import MatchingService
+    res = await MatchingService.respond_to_offer(db, user.id, offer_id, request.action)
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("message"))
+        
+    return APIResponse(
+        success=True,
+        message=res.get("message")
+    )
+
+

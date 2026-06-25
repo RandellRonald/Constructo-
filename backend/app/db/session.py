@@ -4,14 +4,20 @@ Async SQLAlchemy session management.
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from app.core.config import settings
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.ENVIRONMENT == "development",
-    pool_pre_ping=True,
-    pool_size=20,
-    max_overflow=10,
-    pool_recycle=3600,
-)
+if settings.DATABASE_URL.startswith("sqlite"):
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        echo=settings.ENVIRONMENT == "development",
+    )
+else:
+    engine = create_async_engine(
+        settings.DATABASE_URL,
+        echo=settings.ENVIRONMENT == "development",
+        pool_pre_ping=True,
+        pool_size=20,
+        max_overflow=10,
+        pool_recycle=3600,
+    )
 
 AsyncSessionLocal = async_sessionmaker(
     engine,

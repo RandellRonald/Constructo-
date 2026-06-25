@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Navigation, MapPin, Phone, MessageCircle, Shield, Clock, CheckCircle2, ChevronRight } from 'lucide-react'
+import ChatInterface from '../../chat/ChatInterface'
 
 export default function JobNavigation() {
   const { id } = useParams()
@@ -9,6 +10,7 @@ export default function JobNavigation() {
   const [jobState, setJobState] = useState<'en_route' | 'arrived' | 'in_progress' | 'completing'>('en_route')
   const [verificationCode, setVerificationCode] = useState('')
   const [verifyError, setVerifyError] = useState('')
+  const [showChat, setShowChat] = useState(false)
 
   // Mock Job Data
   const job = {
@@ -78,7 +80,10 @@ export default function JobNavigation() {
               </p>
             </div>
             <div className="flex gap-2">
-              <button className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-text-secondary hover:bg-black/5 transition-colors">
+              <button
+                onClick={() => setShowChat(true)}
+                className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-text-secondary hover:bg-black/5 transition-colors"
+              >
                 <MessageCircle className="w-5 h-5" />
               </button>
               <button className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent hover:bg-accent/20 transition-colors">
@@ -164,6 +169,16 @@ export default function JobNavigation() {
           </AnimatePresence>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showChat && id && (
+          <ChatInterface
+            bookingId={Number(id)}
+            otherPartyName={job.customer_name}
+            onClose={() => setShowChat(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

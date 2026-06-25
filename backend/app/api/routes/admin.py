@@ -345,11 +345,40 @@ async def approve_payout(
 
     now = datetime.now(timezone.utc)
     payout.status = PayoutStatus(request.status)
-    payout.bank_reference = request.bank_reference
     payout.notes = request.notes
     payout.admin_id = current_admin.id
     payout.processed_at = now
 
+    bank_ref = request.bank_reference
+    if request.status == "completed":
+        # Retrieve provider details for bank info
+        prov_res = await db.execute(select(User).where(User.id == payout.provider_id))
+        provider = prov_res.scalar_one_or_none()
+        
+        if not provider or not provider.bank_account_number:
+            raise HTTPException(
+                status_code=400,
+                detail="Provider has no bank details configured. Cannot process transfer."
+            )
+            
+        from app.services.settlement_service import BankSettlementService
+        bank_details = {
+            "bank_name": provider.bank_name,
+            "bank_account_number": provider.bank_account_number,
+            "bank_ifsc": provider.bank_ifsc,
+            "bank_account_name": provider.bank_account_name,
+        }
+        settle_result = BankSettlementService.process_payout_transfer(
+            payout_id=payout.id,
+            amount=payout.amount,
+            bank_details=bank_details
+        )
+        if not settle_result.get("success"):
+            raise HTTPException(status_code=500, detail="Automated bank settlement failed.")
+        
+        bank_ref = settle_result.get("bank_reference")
+
+    payout.bank_reference = bank_ref
     await db.flush()
 
     # If approved, notify provider
@@ -523,3 +552,173 @@ async def update_service_category(
             "slug": category.slug,
         },
     )
+
+
+# ─── Analytics & Live Tracking ────────────────────────────────────
+
+@router.get("/analytics", response_model=APIResponse)
+async def get_platform_analytics(
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve detailed platform operational analytics."""
+    from collections import defaultdict
+    from datetime import timedelta
+    
+    now = datetime.now(timezone.utc)
+    six_months_ago = now - timedelta(days=180)
+
+    # 1. Revenue trend (last 6 months)
+    payments_res = await db.execute(
+        select(Payment.amount, Payment.paid_at)
+        .where(
+            Payment.status == PaymentStatus.PAID,
+            Payment.paid_at >= six_months_ago
+        )
+    )
+    payments = payments_res.fetchall()
+    
+    monthly_rev = defaultdict(float)
+    for amount, paid_at in payments:
+        if paid_at:
+            month_key = paid_at.strftime("%Y-%m")
+            monthly_rev[month_key] += float(amount)
+            
+    # Format monthly rev sorted by key
+    revenue_trend = [{"month": k, "revenue": v} for k, v in sorted(monthly_rev.items())]
+
+    # 2. Service category distribution
+    bookings_res = await db.execute(
+        select(ServiceCategory.name, func.count(Booking.id))
+        .join(Booking, Booking.service_category_id == ServiceCategory.id)
+        .group_by(ServiceCategory.name)
+    )
+    category_distribution = [
+        {"category": name, "bookings_count": count} for name, count in bookings_res.fetchall()
+    ]
+
+    # 3. Average Dispatch & Completion Duration
+    dispatch_res = await db.execute(
+        select(Booking.created_at, Booking.provider_assigned_at, Booking.completed_at)
+        .where(Booking.status == BookingStatus.COMPLETED)
+    )
+    completed_bookings = dispatch_res.fetchall()
+    
+    avg_dispatch_min = 0.0
+    avg_completion_hours = 0.0
+    
+    if completed_bookings:
+        dispatch_deltas = []
+        completion_deltas = []
+        for created, assigned, completed in completed_bookings:
+            if assigned and created:
+                dispatch_deltas.append((assigned - created).total_seconds() / 60.0)
+            if completed and assigned:
+                completion_deltas.append((completed - assigned).total_seconds() / 3600.0)
+                
+        if dispatch_deltas:
+            avg_dispatch_min = sum(dispatch_deltas) / len(dispatch_deltas)
+        if completion_deltas:
+            avg_completion_hours = sum(completion_deltas) / len(completion_deltas)
+
+    # 4. Top providers by reliability score
+    providers_res = await db.execute(
+        select(User.id, User.name, User.reliability_score, User.average_rating)
+        .where(User.role == UserRole.PROVIDER)
+        .order_by(desc(User.reliability_score))
+        .limit(10)
+    )
+    top_providers = [
+        {
+            "id": uid,
+            "name": name,
+            "reliability_score": rel_score,
+            "average_rating": rating
+        } for uid, name, rel_score, rating in providers_res.fetchall()
+    ]
+
+    return APIResponse(
+        success=True,
+        message="Analytics retrieved successfully",
+        data={
+            "revenue_trend": revenue_trend,
+            "category_distribution": category_distribution,
+            "average_dispatch_minutes": round(avg_dispatch_min, 1),
+            "average_completion_hours": round(avg_completion_hours, 1),
+            "top_providers": top_providers,
+        }
+    )
+
+
+@router.get("/live-tracking", response_model=APIResponse)
+async def get_live_tracking(
+    current_admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve active bookings and current positions of providers for live tracking."""
+    # Fetch active bookings
+    result = await db.execute(
+        select(Booking)
+        .where(
+            Booking.status.in_([
+                BookingStatus.ASSIGNED, BookingStatus.EN_ROUTE,
+                BookingStatus.ARRIVED, BookingStatus.VERIFIED,
+                BookingStatus.IN_PROGRESS
+            ])
+        )
+    )
+    bookings = result.scalars().all()
+
+    live_jobs = []
+    for b in bookings:
+        cust_res = await db.execute(select(User.name).where(User.id == b.customer_id))
+        cust_name = cust_res.scalar() or "Unknown"
+
+        prov_name = "Unassigned"
+        prov_phone = ""
+        prov_lat = b.pickup_latitude
+        prov_lon = b.pickup_longitude
+        
+        if b.provider_id:
+            prov_user_res = await db.execute(select(User).where(User.id == b.provider_id))
+            prov_user = prov_user_res.scalar_one_or_none()
+            if prov_user:
+                prov_name = prov_user.name
+                prov_phone = prov_user.phone
+
+            from app.models.tracking import TrackingLog
+            log_res = await db.execute(
+                select(TrackingLog)
+                .where(TrackingLog.booking_id == b.id)
+                .order_by(desc(TrackingLog.recorded_at))
+                .limit(1)
+            )
+            latest_log = log_res.scalar_one_or_none()
+            if latest_log:
+                prov_lat = latest_log.latitude
+                prov_lon = latest_log.longitude
+
+        service_res = await db.execute(select(ServiceCategory.name).where(ServiceCategory.id == b.service_category_id))
+        service_name = service_res.scalar() or f"Service #{b.service_category_id}"
+
+        live_jobs.append({
+            "id": b.id,
+            "booking_number": b.booking_number,
+            "customer_name": cust_name,
+            "provider_name": prov_name,
+            "provider_phone": prov_phone,
+            "service_name": service_name,
+            "status": b.status.value,
+            "pickup_address": b.pickup_address,
+            "pickup_latitude": b.pickup_latitude,
+            "pickup_longitude": b.pickup_longitude,
+            "provider_latitude": prov_lat,
+            "provider_longitude": prov_lon,
+        })
+
+    return APIResponse(
+        success=True,
+        message="Live tracking data retrieved successfully",
+        data=live_jobs
+    )
+

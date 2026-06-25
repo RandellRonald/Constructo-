@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -30,23 +30,77 @@ export default function BookingPage() {
   const [description, setDescription] = useState('')
   const [photos, setPhotos] = useState<File[]>([])
 
+  // Coordinates and dynamic pricing
+  const [lat, setLat] = useState<number | null>(null)
+  const [lng, setLng] = useState<number | null>(null)
+  const [calculatedPrice, setCalculatedPrice] = useState<any>(null)
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [pricingError, setPricingError] = useState('')
+
   const totalSteps = 4
   const actualDuration = customDuration ? parseFloat(customDuration) : duration
-  const basePrice = (selectedService?.rate || 0) * actualDuration
-  const emergencyFee = isEmergency ? 500 : 0
-  const reservationFee = 200
-  const tax = Math.round(basePrice * 0.18)
-  const total = basePrice + emergencyFee + reservationFee + tax
+
+  // Fetch dynamic breakdown from API
+  const fetchPricingBreakdown = async () => {
+    if (!selectedService) return
+    setIsCalculating(true)
+    setPricingError('')
+    try {
+      const res = await bookingAPI.calculatePrice({
+        service_category_id: selectedService.id,
+        duration_hours: actualDuration,
+        is_emergency: isEmergency,
+        latitude: lat || 9.9312,
+        longitude: lng || 76.2673,
+      })
+      if (res.data.success) {
+        setCalculatedPrice(res.data.data)
+      } else {
+        setPricingError(res.data.message || 'Failed to calculate price')
+      }
+    } catch (err: any) {
+      console.error('Price calculation error:', err)
+      setPricingError(err.response?.data?.detail || 'Failed to calculate price')
+    } finally {
+      setIsCalculating(false)
+    }
+  }
+
+  // Update price preview in real-time
+  useEffect(() => {
+    if (selectedService && step >= 1) {
+      fetchPricingBreakdown()
+    }
+  }, [selectedService, actualDuration, isEmergency, lat, lng, step])
+
+  // GPS locator
+  const handleUseGPS = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser")
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude)
+        setLng(pos.coords.longitude)
+        setAddress(`GPS Location (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`)
+      },
+      (err) => {
+        console.error("GPS error:", err)
+        alert("Failed to retrieve location. Please check browser permissions.")
+      }
+    )
+  }
 
   const handleCreateBooking = async () => {
-    if (!selectedService) return
+    if (!selectedService || pricingError) return
     setIsLoading(true)
     try {
       const res = await bookingAPI.createBooking({
         service_category_id: selectedService.id,
         pickup_address: address || 'Ernakulam, Kerala',
-        pickup_latitude: 9.9312,
-        pickup_longitude: 76.2673,
+        pickup_latitude: lat || 9.9312,
+        pickup_longitude: lng || 76.2673,
         duration_hours: actualDuration,
         description,
         is_emergency: isEmergency,
@@ -54,8 +108,9 @@ export default function BookingPage() {
       if (res.data.success) {
         navigate('/customer/payment', { state: { booking: res.data.data } })
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Booking failed:', err)
+      alert(err.response?.data?.detail || 'Booking failed')
     } finally {
       setIsLoading(false)
     }
@@ -134,7 +189,11 @@ export default function BookingPage() {
                       className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/60 border border-border focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none text-sm"
                     />
                   </div>
-                  <button className="mt-2 text-xs text-secondary font-medium flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleUseGPS}
+                    className="mt-2 text-xs text-secondary font-medium flex items-center gap-1 hover:underline"
+                  >
                     <MapPin className="w-3 h-3" /> Use current location
                   </button>
                 </div>
@@ -182,25 +241,54 @@ export default function BookingPage() {
                 </button>
 
                 {/* Price Preview */}
-                <div className="glass-card p-4 rounded-xl">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-text-secondary">Base Price ({actualDuration}h × ₹{selectedService?.rate})</span>
-                    <span className="font-semibold">₹{basePrice.toLocaleString()}</span>
-                  </div>
-                  {isEmergency && (
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-text-secondary">Emergency Fee</span>
-                      <span className="font-semibold text-danger">₹{emergencyFee}</span>
+                <div className="glass-card p-4 rounded-xl relative overflow-hidden min-h-[100px] flex flex-col justify-center">
+                  {isCalculating && (
+                    <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-[1px] flex items-center justify-center rounded-xl z-10">
+                      <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-text-secondary">Reservation Fee</span>
-                    <span className="font-semibold">₹{reservationFee}</span>
-                  </div>
-                  <div className="border-t border-border mt-2 pt-2 flex justify-between">
-                    <span className="font-bold text-sm">Estimated Total</span>
-                    <span className="font-bold text-secondary">₹{total.toLocaleString()}</span>
-                  </div>
+                  {pricingError ? (
+                    <p className="text-danger text-xs text-center font-semibold">{pricingError}</p>
+                  ) : calculatedPrice ? (
+                    <div className="space-y-1 w-full text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-text-secondary">Base Rate (₹{calculatedPrice.hourly_rate}/h × {actualDuration}h)</span>
+                        <span className="font-medium">₹{calculatedPrice.base_price.toLocaleString()}</span>
+                      </div>
+                      {calculatedPrice.peak_surcharge > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-text-secondary">Peak Hour Fee ({calculatedPrice.peak_multiplier}x)</span>
+                          <span className="font-medium text-amber-500">+₹{calculatedPrice.peak_surcharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {calculatedPrice.surge_surcharge > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-text-secondary">Surge Surcharge ({calculatedPrice.surge_multiplier}x)</span>
+                          <span className="font-medium text-amber-500">+₹{calculatedPrice.surge_surcharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {calculatedPrice.emergency_fee > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-text-secondary">Emergency Surcharge</span>
+                          <span className="font-medium text-danger">+₹{calculatedPrice.emergency_fee.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-text-secondary">Reservation Fee</span>
+                        <span className="font-medium">₹{calculatedPrice.reservation_fee.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-secondary">GST (18%)</span>
+                        <span className="font-medium">₹{calculatedPrice.tax.toLocaleString()}</span>
+                      </div>
+                      <div className="border-t border-border mt-2 pt-2 flex justify-between items-center">
+                        <span className="font-bold text-sm">Estimated Total</span>
+                        <span className="font-bold text-secondary text-base">₹{calculatedPrice.estimated_total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-text-muted text-xs text-center">Calculating price...</p>
+                  )}
                 </div>
               </div>
 
@@ -304,16 +392,46 @@ export default function BookingPage() {
                 {/* Price Breakdown */}
                 <div className="glass-card p-5">
                   <h3 className="font-bold text-sm mb-3">Price Breakdown</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm"><span className="text-text-secondary">Base Price</span><span>₹{basePrice.toLocaleString()}</span></div>
-                    {isEmergency && <div className="flex justify-between text-sm"><span className="text-text-secondary">Emergency Fee</span><span className="text-danger">₹{emergencyFee}</span></div>}
-                    <div className="flex justify-between text-sm"><span className="text-text-secondary">Reservation Fee</span><span>₹{reservationFee}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-text-secondary">GST (18%)</span><span>₹{tax}</span></div>
-                    <div className="border-t border-border pt-2 flex justify-between">
-                      <span className="font-bold">Estimated Total</span>
-                      <span className="font-bold text-lg text-secondary">₹{total.toLocaleString()}</span>
+                  {calculatedPrice ? (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-text-secondary">Base Rate (₹{calculatedPrice.hourly_rate}/h × {actualDuration}h)</span>
+                        <span>₹{calculatedPrice.base_price.toLocaleString()}</span>
+                      </div>
+                      {calculatedPrice.peak_surcharge > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-text-secondary">Peak Hour Fee ({calculatedPrice.peak_multiplier}x)</span>
+                          <span className="text-amber-500 font-medium">+₹{calculatedPrice.peak_surcharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {calculatedPrice.surge_surcharge > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-text-secondary">Surge Surcharge ({calculatedPrice.surge_multiplier}x)</span>
+                          <span className="text-amber-500 font-medium">+₹{calculatedPrice.surge_surcharge.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {calculatedPrice.emergency_fee > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-text-secondary">Emergency Surcharge</span>
+                          <span className="text-danger font-medium">+₹{calculatedPrice.emergency_fee.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-text-secondary">Reservation Fee</span>
+                        <span>₹{calculatedPrice.reservation_fee.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-secondary">GST (18%)</span>
+                        <span>₹{calculatedPrice.tax.toLocaleString()}</span>
+                      </div>
+                      <div className="border-t border-border pt-2 flex justify-between items-center">
+                        <span className="font-bold">Estimated Total</span>
+                        <span className="font-bold text-lg text-secondary">₹{calculatedPrice.estimated_total.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <p className="text-text-muted text-sm text-center">Loading pricing breakdown...</p>
+                  )}
                 </div>
 
                 <p className="text-text-muted text-xs text-center">

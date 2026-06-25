@@ -2,6 +2,7 @@
 Constructo Backend – FastAPI Application
 Professional Site Services Across Kerala
 """
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,8 +22,19 @@ async def lifespan(app: FastAPI):
     if settings.ENVIRONMENT == "development":
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            
+    # Start dispatch allocation worker
+    from app.services.dispatch_worker import dispatch_worker_loop
+    worker_task = asyncio.create_task(dispatch_worker_loop())
+    
     yield
-    # Shutdown: Dispose engine
+    
+    # Shutdown: Cancel worker and dispose engine
+    worker_task.cancel()
+    try:
+        await worker_task
+    except asyncio.CancelledError:
+        pass
     await engine.dispose()
 
 

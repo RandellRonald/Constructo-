@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, Navigation, Shield, User, Star, Headphones } from 'lucide-react'
 import { trackingAPI } from '../../../services/api'
+import ChatInterface from '../../chat/ChatInterface'
 
 export default function TrackingPage() {
   const { bookingId } = useParams()
   const navigate = useNavigate()
   const [trackingData, setTrackingData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     if (bookingId) loadTracking()
@@ -111,7 +113,10 @@ export default function TrackingPage() {
               <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary flex items-center justify-center gap-1.5">
                 <Phone className="w-4 h-4" /> Call
               </button>
-              <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-border hover:bg-black/5 flex items-center justify-center gap-1.5">
+              <button
+                onClick={() => setShowChat(true)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-border hover:bg-black/5 flex items-center justify-center gap-1.5"
+              >
                 <MessageCircle className="w-4 h-4" /> Chat
               </button>
             </div>
@@ -161,6 +166,16 @@ export default function TrackingPage() {
           Cancel Booking
         </button>
       </div>
+
+      <AnimatePresence>
+        {showChat && bookingId && (
+          <ChatInterface
+            bookingId={Number(bookingId)}
+            otherPartyName="Provider"
+            onClose={() => setShowChat(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

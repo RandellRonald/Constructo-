@@ -75,7 +75,8 @@ export const bookingAPI = {
   createBooking: (data: Record<string, unknown>) => api.post('/bookings', data),
   getActive: () => api.get('/bookings/active'),
   getHistory: () => api.get('/bookings/history'),
-  getBooking: (id: number) => api.get(`/bookings/${id}`),
+  getBooking: (id: number | string) => api.get(`/bookings/${id}`),
+  getChatHistory: (bookingId: number | string) => api.get(`/bookings/${bookingId}/chat-history`),
 }
 
 // ─── Payment API ─────────────────────────────────────────────────
@@ -118,6 +119,10 @@ export const providerAPI = {
   updateJobStatus: (bookingId: number | string, data: Record<string, unknown>) => api.post(`/bookings/${bookingId}/status`, data),
   getWallet: () => api.get('/provider/wallet'),
   requestPayout: (data: Record<string, unknown>) => api.post('/provider/payout', data),
+  getBankDetails: () => api.get('/provider/bank-details'),
+  updateBankDetails: (data: Record<string, unknown>) => api.post('/provider/bank-details', data),
+  getOffers: () => api.get('/provider/offers'),
+  respondToOffer: (offerId: number | string, action: 'accept' | 'decline') => api.post(`/provider/offers/${offerId}/respond`, { action }),
 }
 
 // ─── Notification API ────────────────────────────────────────────
@@ -148,6 +153,8 @@ export const adminAPI = {
   getServices: () => api.get('/admin/services'),
   createService: (data: Record<string, unknown>) => api.post('/admin/services', data),
   updateService: (id: number, data: Record<string, unknown>) => api.put(`/admin/services/${id}`, data),
+  getAnalytics: () => api.get('/admin/analytics'),
+  getLiveTracking: () => api.get('/admin/live-tracking'),
 }
 
 export default api

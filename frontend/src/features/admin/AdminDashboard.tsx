@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users, Calendar, CreditCard, ShieldCheck, LogOut, Search,
   Filter, Ban, CheckCircle, AlertTriangle, Briefcase, Plus,
-  Edit2, Eye, RefreshCw, X, Check, Globe
+  Edit2, Eye, RefreshCw, X, Check, Globe, BarChart2, Map, Clock, Activity
 } from 'lucide-react'
 import { adminAPI } from '../../services/api'
 import { useAuthStore } from '../../stores/authStore'
@@ -69,7 +69,7 @@ interface ServiceCategory {
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const { logout, user } = useAuthStore()
-  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'bookings' | 'payouts' | 'services'>('stats')
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'bookings' | 'payouts' | 'services' | 'analytics' | 'tracking'>('stats')
 
   // Data states
   const [stats, setStats] = useState<Stats | null>(null)
@@ -77,6 +77,8 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [payouts, setPayouts] = useState<Payout[]>([])
   const [services, setServices] = useState<ServiceCategory[]>([])
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [liveTrackingData, setLiveTrackingData] = useState<any[]>([])
 
   // Filters & Loading
   const [loading, setLoading] = useState(true)
@@ -131,6 +133,12 @@ export default function AdminDashboard() {
       } else if (activeTab === 'services') {
         const res = await adminAPI.getServices()
         if (res.data.success) setServices(res.data.data)
+      } else if (activeTab === 'analytics') {
+        const res = await adminAPI.getAnalytics()
+        if (res.data.success) setAnalyticsData(res.data.data)
+      } else if (activeTab === 'tracking') {
+        const res = await adminAPI.getLiveTracking()
+        if (res.data.success) setLiveTrackingData(res.data.data)
       }
     } catch (err) {
       console.error('Failed to fetch data:', err)
@@ -138,6 +146,51 @@ export default function AdminDashboard() {
       setLoading(false)
     }
   };
+
+  // Live tracking poll & movement simulation
+  useEffect(() => {
+    if (activeTab !== 'tracking') return
+
+    // Fetch initial
+    fetchTabContent()
+
+    // Poll every 10s
+    const pollInterval = setInterval(() => {
+      adminAPI.getLiveTracking().then((res) => {
+        if (res.data.success) setLiveTrackingData(res.data.data)
+      })
+    }, 10000)
+
+    // Simulate provider drifts toward customer every 1.5 seconds
+    const driftInterval = setInterval(() => {
+      setLiveTrackingData((prevJobs) =>
+        prevJobs.map((job) => {
+          if (!job.provider_latitude || !job.provider_longitude) return job
+          const destLat = job.pickup_latitude
+          const destLng = job.pickup_longitude
+          const currLat = job.provider_latitude
+          const currLng = job.provider_longitude
+
+          // Move 3% closer each drift tick
+          const diffLat = destLat - currLat
+          const diffLng = destLng - currLng
+          
+          if (Math.abs(diffLat) < 0.0001 && Math.abs(diffLng) < 0.0001) return job
+
+          return {
+            ...job,
+            provider_latitude: currLat + diffLat * 0.03,
+            provider_longitude: currLng + diffLng * 0.03,
+          }
+        })
+      )
+    }, 1500)
+
+    return () => {
+      clearInterval(pollInterval)
+      clearInterval(driftInterval)
+    }
+  }, [activeTab])
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -283,6 +336,22 @@ export default function AdminDashboard() {
               }`}
             >
               <Briefcase className="w-4 h-4" /> Service Categories
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                activeTab === 'analytics' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+              }`}
+            >
+              <BarChart2 className="w-4 h-4" /> Operations Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab('tracking')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                activeTab === 'tracking' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+              }`}
+            >
+              <Map className="w-4 h-4" /> Live Tracking
             </button>
           </nav>
         </div>
@@ -882,6 +951,305 @@ export default function AdminDashboard() {
                         </motion.div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* ─── TAB: ANALYTICS ─── */}
+                {activeTab === 'analytics' && analyticsData && (
+                  <div className="space-y-8">
+                    {/* Upper row: fulfilment cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 relative overflow-hidden flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                          <Activity className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Avg. Dispatch Time</p>
+                          <h3 className="text-2xl font-bold text-white mt-1">{analyticsData.average_dispatch_minutes} minutes</h3>
+                        </div>
+                      </div>
+                      <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 relative overflow-hidden flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                          <Clock className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Avg. Completion Duration</p>
+                          <h3 className="text-2xl font-bold text-white mt-1">{analyticsData.average_completion_hours} hours</h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {/* Revenue Trend SVG Line Chart */}
+                      <div className="bg-slate-900 border border-white/5 rounded-3xl p-6">
+                        <h3 className="text-sm font-bold text-white mb-6">Revenue Trend (Last 6 Months)</h3>
+                        {analyticsData.revenue_trend?.length > 0 ? (
+                          <div className="relative">
+                            <svg viewBox="0 0 500 200" className="w-full h-auto overflow-visible">
+                              <defs>
+                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4" />
+                                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
+                                </linearGradient>
+                              </defs>
+                              {/* Horizontal helper gridlines */}
+                              {[0, 50, 100, 150].map((yVal) => (
+                                <line key={yVal} x1="30" y1={yVal} x2="480" y2={yVal} stroke="rgba(255,255,255,0.05)" strokeDasharray="3,3" />
+                              ))}
+                              {(() => {
+                                const revs = analyticsData.revenue_trend.map((d: any) => d.revenue)
+                                const maxRev = Math.max(...revs, 1000)
+                                const width = 430
+                                const height = 140
+                                const points = analyticsData.revenue_trend.map((d: any, i: number) => {
+                                  const x = 40 + (i / (analyticsData.revenue_trend.length - 1 || 1)) * width
+                                  const y = 160 - (d.revenue / maxRev) * height
+                                  return { x, y, ...d }
+                                })
+                                const pathD = points.reduce((acc: string, p: any, i: number) => 
+                                  i === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`, ''
+                                )
+                                const areaD = `${pathD} L ${points[points.length - 1].x} 170 L ${points[0].x} 170 Z`
+
+                                return (
+                                  <>
+                                    <path d={areaD} fill="url(#chartGrad)" />
+                                    <path d={pathD} fill="none" stroke="#6366f1" strokeWidth="3" />
+                                    {points.map((p: any, i: number) => (
+                                      <g key={i}>
+                                        <circle cx={p.x} cy={p.y} r="5" fill="#06b6d4" stroke="#ffffff" strokeWidth="2" />
+                                        {/* Label */}
+                                        <text x={p.x} y={p.y - 10} fill="#94a3b8" fontSize="8" textAnchor="middle" fontWeight="bold">
+                                          ₹{Math.round(p.revenue).toLocaleString()}
+                                        </text>
+                                        {/* X Axis Label */}
+                                        <text x={p.x} y="185" fill="#64748b" fontSize="8" textAnchor="middle">
+                                          {p.month}
+                                        </text>
+                                      </g>
+                                    ))}
+                                  </>
+                                )
+                              })()}
+                            </svg>
+                          </div>
+                        ) : (
+                          <p className="text-slate-500 text-xs text-center py-20">No revenue data available.</p>
+                        )}
+                      </div>
+
+                      {/* Category Distribution SVG Bar Chart */}
+                      <div className="bg-slate-900 border border-white/5 rounded-3xl p-6">
+                        <h3 className="text-sm font-bold text-white mb-6">Service Category Distribution</h3>
+                        {analyticsData.category_distribution?.length > 0 ? (
+                          <div className="space-y-4">
+                            {(() => {
+                              const counts = analyticsData.category_distribution.map((d: any) => d.bookings_count)
+                              const maxCount = Math.max(...counts, 1)
+                              return analyticsData.category_distribution.map((item: any, i: number) => {
+                                const percentage = (item.bookings_count / maxCount) * 100
+                                return (
+                                  <div key={i} className="space-y-1">
+                                    <div className="flex justify-between text-xs font-semibold">
+                                      <span className="text-slate-300">{item.category}</span>
+                                      <span className="text-cyan-400">{item.bookings_count} bookings</span>
+                                    </div>
+                                    <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                                      <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${percentage}%` }}
+                                        transition={{ duration: 0.8, delay: i * 0.1 }}
+                                        className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"
+                                      />
+                                    </div>
+                                  </div>
+                                )
+                              })
+                            })()}
+                          </div>
+                        ) : (
+                          <p className="text-slate-500 text-xs text-center py-20">No booking distributions available.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Top Providers list */}
+                    <div className="bg-slate-900 border border-white/5 rounded-3xl p-6">
+                      <h3 className="text-sm font-bold text-white mb-6">Top Performing Providers</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="border-b border-white/5 text-slate-400 uppercase tracking-wider font-semibold">
+                              <th className="py-3 px-4">Provider</th>
+                              <th className="py-3 px-4 text-center">Rating</th>
+                              <th className="py-3 px-4">Reliability Score</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {analyticsData.top_providers?.map((p: any) => (
+                              <tr key={p.id} className="hover:bg-white/[0.01] transition-all">
+                                <td className="py-3.5 px-4 font-bold text-slate-200">{p.name}</td>
+                                <td className="py-3.5 px-4 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <span className="font-bold text-warning">{p.average_rating || '5.0'}</span>
+                                    <span className="text-warning">★</span>
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-semibold text-slate-300 min-w-[32px]">{Math.round(p.reliability_score || 100)}%</span>
+                                    <div className="h-2 w-32 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                                      <div
+                                        style={{ width: `${p.reliability_score || 100}%` }}
+                                        className={`h-full rounded-full ${
+                                          (p.reliability_score || 100) >= 90
+                                            ? 'bg-emerald-500'
+                                            : (p.reliability_score || 100) >= 75
+                                            ? 'bg-indigo-500'
+                                            : 'bg-rose-500'
+                                        }`}
+                                      />
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── TAB: LIVE TRACKING ─── */}
+                {activeTab === 'tracking' && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left: Active Jobs Listing Panel */}
+                    <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 lg:col-span-1 flex flex-col max-h-[500px]">
+                      <h3 className="text-sm font-bold text-white mb-4 shrink-0 flex items-center justify-between">
+                        <span>Active Operations</span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-semibold text-[10px] uppercase">
+                          {liveTrackingData.length} Live
+                        </span>
+                      </h3>
+                      
+                      <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                        {liveTrackingData.length === 0 ? (
+                          <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center py-20">
+                            <Activity className="w-8 h-8 mb-2 text-indigo-500/30" />
+                            <p className="font-semibold text-xs">No active service dispatches</p>
+                          </div>
+                        ) : (
+                          liveTrackingData.map((job) => (
+                            <div key={job.id} className="p-4 rounded-2xl bg-slate-950 border border-white/5 hover:border-indigo-500/30 transition-all text-xs space-y-2">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="font-bold text-white">#{job.booking_number}</p>
+                                  <p className="text-slate-400 font-medium text-[10px] mt-0.5">{job.service_name}</p>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded font-bold text-[9px] uppercase ${
+                                  job.status === 'in_progress' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-cyan-500/10 text-cyan-400'
+                                }`}>
+                                  {job.status}
+                                </span>
+                              </div>
+                              <div className="border-t border-white/5 pt-2 space-y-1 text-slate-400 font-medium text-[10px]">
+                                <p><span className="text-slate-500">Customer:</span> {job.customer_name}</p>
+                                <p><span className="text-slate-500">Provider:</span> {job.provider_name} ({job.provider_phone || 'N/A'})</p>
+                                <p className="truncate"><span className="text-slate-500">Location:</span> {job.pickup_address}</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Custom Radar Map (SVG visualization) */}
+                    <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 lg:col-span-2 flex flex-col h-[500px]">
+                      <h3 className="text-sm font-bold text-white mb-2 shrink-0">Live Platform Dispatch Map</h3>
+                      <p className="text-[10px] text-slate-500 font-medium mb-4 shrink-0">Visualizing active provider navigation to customers across Ernakulam district (Simulated movement live)</p>
+                      
+                      <div className="flex-1 bg-slate-950 rounded-2xl relative overflow-hidden border border-white/5 flex items-center justify-center">
+                        {/* Futuristic scan grid */}
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:24px_24px]" />
+                        <div className="absolute top-0 left-0 w-full h-0.5 bg-indigo-500/20 animate-pulse shadow-[0_0_15px_#6366f1]" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }} />
+
+                        <svg className="w-full h-full p-6 relative z-10 overflow-visible" viewBox="0 0 600 400">
+                          {liveTrackingData.length === 0 ? (
+                            <text x="300" y="200" textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="bold">
+                              No active GPS operations to track
+                            </text>
+                          ) : (
+                            <>
+                              {/* Draw Kerala district context lines (stylized circles and grid center) */}
+                              <circle cx="300" cy="200" r="180" fill="none" stroke="rgba(99,102,241,0.03)" strokeWidth="1" />
+                              <circle cx="300" cy="200" r="100" fill="none" stroke="rgba(99,102,241,0.03)" strokeWidth="1" />
+                              <line x1="300" y1="20" x2="300" y2="380" stroke="rgba(99,102,241,0.03)" strokeWidth="1" />
+                              <line x1="20" y1="200" x2="580" y2="200" stroke="rgba(99,102,241,0.03)" strokeWidth="1" />
+
+                              {(() => {
+                                // Latitude: 9.85 to 10.05, Longitude: 76.15 to 76.35
+                                const minLat = 9.85
+                                const maxLat = 10.05
+                                const minLng = 76.15
+                                const maxLng = 76.35
+
+                                const mapCoords = (lat: number, lng: number) => {
+                                  const y = 350 - ((lat - minLat) / (maxLat - minLat)) * 300
+                                  const x = 50 + ((lng - minLng) / (maxLng - minLng)) * 500
+                                  return { x, y }
+                                }
+
+                                return liveTrackingData.map((job) => {
+                                  const cust = mapCoords(job.pickup_latitude, job.pickup_longitude)
+                                  const prov = (job.provider_latitude && job.provider_longitude)
+                                    ? mapCoords(job.provider_latitude, job.provider_longitude)
+                                    : cust
+
+                                  return (
+                                    <g key={job.id}>
+                                      {/* Connection Line */}
+                                      {job.provider_latitude && (
+                                        <line
+                                          x1={prov.x}
+                                          y1={prov.y}
+                                          x2={cust.x}
+                                          y2={cust.y}
+                                          stroke="#6366f1"
+                                          strokeWidth="2"
+                                          strokeDasharray="4,4"
+                                          className="stroke-[url(#dashGradient)]"
+                                        />
+                                      )}
+
+                                      {/* Customer Dot (Cyan) */}
+                                      <g>
+                                        <circle cx={cust.x} cy={cust.y} r="8" fill="#06b6d4" fillOpacity="0.2" className="animate-ping" style={{ animationDuration: '2s' }} />
+                                        <circle cx={cust.x} cy={cust.y} r="5" fill="#06b6d4" stroke="#ffffff" strokeWidth="1.5" />
+                                        <text x={cust.x + 8} y={cust.y + 3} fill="#06b6d4" fontSize="8" fontWeight="bold">
+                                          Cust #{job.booking_number.substring(4)}
+                                        </text>
+                                      </g>
+
+                                      {/* Provider Dot (Indigo) if assigned */}
+                                      {job.provider_latitude && (
+                                        <g>
+                                          <circle cx={prov.x} cy={prov.y} r="8" fill="#6366f1" fillOpacity="0.2" className="animate-ping" style={{ animationDuration: '3s' }} />
+                                          <circle cx={prov.x} cy={prov.y} r="5" fill="#6366f1" stroke="#ffffff" strokeWidth="1.5" />
+                                          <text x={prov.x - 8} y={prov.y - 8} fill="#818cf8" fontSize="8" fontWeight="bold" textAnchor="end">
+                                            Prov {job.provider_name}
+                                          </text>
+                                        </g>
+                                      )}
+                                    </g>
+                                  )
+                                })
+                              })()}
+                            </>
+                          )}
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 )}
               </motion.div>

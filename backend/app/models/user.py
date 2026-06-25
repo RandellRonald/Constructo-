@@ -43,6 +43,12 @@ class User(Base, TimestampMixin):
     district = Column(String(100), nullable=True)
     service_categories = Column(Text, nullable=True)  # JSON string of category IDs
 
+    # Provider bank details
+    bank_name = Column(String(255), nullable=True)
+    bank_account_number = Column(String(255), nullable=True)
+    bank_ifsc = Column(String(50), nullable=True)
+    bank_account_name = Column(String(255), nullable=True)
+
     # Relationships
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     bookings = relationship("Booking", foreign_keys="Booking.customer_id", back_populates="customer")
