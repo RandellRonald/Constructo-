@@ -284,16 +284,19 @@ async def get_booking_history(
 @router.get("/{booking_id}", response_model=APIResponse)
 async def get_booking(
     booking_id: int,
-    user: User = Depends(require_customer),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get booking details."""
     result = await db.execute(
-        select(Booking).where(Booking.id == booking_id, Booking.customer_id == user.id)
+        select(Booking).where(Booking.id == booking_id)
     )
     booking = result.scalar_one_or_none()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+
+    if booking.customer_id != user.id and booking.provider_id != user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this booking")
 
     return APIResponse(
         success=True,

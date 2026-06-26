@@ -44,7 +44,11 @@ export default function PaymentPage() {
                 setStatus('failed')
               }
             },
-            prefill: {},
+            prefill: {
+              name: orderData.customer_name || '',
+              email: orderData.customer_email || '',
+              contact: orderData.customer_phone || '',
+            },
             theme: { color: '#6366F1' },
           }
           const razorpay = new (window as any).Razorpay(options)

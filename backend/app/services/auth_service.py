@@ -190,7 +190,10 @@ class AuthService:
 
         otp.attempts += 1
 
-        if datetime.now(timezone.utc) > otp.expires_at:
+        otp_expires_at = otp.expires_at
+        if otp_expires_at.tzinfo is None:
+            otp_expires_at = otp_expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > otp_expires_at:
             raise ValueError("OTP expired. Please request a new one.")
 
         if otp.otp_code != otp_code:

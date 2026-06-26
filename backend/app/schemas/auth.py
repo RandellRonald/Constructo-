@@ -2,7 +2,7 @@
 Pydantic schemas for authentication requests and responses.
 """
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from pydantic import BaseModel, EmailStr, Field, field_validator
 import re
 
@@ -135,4 +135,4 @@ class APIResponse(BaseModel):
     """Standard API response wrapper."""
     success: bool
     message: str
-    data: Optional[dict] = None
+    data: Optional[Any] = None

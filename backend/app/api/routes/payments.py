@@ -54,12 +54,18 @@ async def create_order(
     razorpay_order = None
     if settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET:
         import razorpay
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-        razorpay_order = client.order.create({
-            "amount": int(amount * 100),  # Amount in paise
-            "currency": "INR",
-            "receipt": f"rcpt_{booking.booking_number}",
-        })
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            razorpay_order = client.order.create({
+                "amount": int(amount * 100),  # Amount in paise
+                "currency": "INR",
+                "receipt": f"rcpt_{booking.booking_number}",
+            })
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Failed to create Razorpay order: {str(e)}"
+            )
 
     order_id = razorpay_order["id"] if razorpay_order else f"order_dev_{booking.id}"
 
@@ -85,6 +91,9 @@ async def create_order(
             "payment_id": payment.id,
             "razorpay_key": settings.RAZORPAY_KEY_ID,
             "booking_number": booking.booking_number,
+            "customer_name": user.name,
+            "customer_email": user.email,
+            "customer_phone": user.phone,
         },
     )
 

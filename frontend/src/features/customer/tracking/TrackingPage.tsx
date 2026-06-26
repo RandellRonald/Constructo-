@@ -81,9 +81,7 @@ export default function TrackingPage() {
             })
             if (payload.duration_min !== undefined) setEta(payload.duration_min)
             if (payload.distance_km !== undefined) setDistance(payload.distance_km)
-            if (payload.booking_status) {
-              setTrackingData((prev: any) => prev ? { ...prev, booking_status: payload.booking_status } : null)
-            }
+            loadTracking()
           }
         } catch (err) {
           console.error('Error parsing tracking WS message:', err)
@@ -347,7 +345,7 @@ export default function TrackingPage() {
         </motion.div>
 
         {/* Provider Card */}
-        {trackingData?.provider_location && (
+        {(trackingData?.provider_location || providerLoc || (trackingData?.booking_status && trackingData.booking_status !== 'created' && trackingData.booking_status !== 'searching')) && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-5">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center text-white font-black text-xl">

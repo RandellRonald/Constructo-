@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Camera, CheckCircle2, AlertCircle, X, Plus, Clock } from 'lucide-react'
+import { providerAPI } from '../../../services/api'
 
 export default function CompletionPage() {
   const { id } = useParams()
@@ -20,10 +21,15 @@ export default function CompletionPage() {
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
-      // await api.post(`/bookings/${id}/complete`, { actual_hours: parseFloat(actualHours), completion_notes: notes })
+      await providerAPI.updateJobStatus(Number(id), {
+        status: 'completed',
+        actual_hours: parseFloat(actualHours),
+        completion_notes: notes
+      })
       navigate('/provider/dashboard') // Redirect back on success
     } catch(e) {
       console.error(e)
+      alert('Failed to complete job. Please try again.')
     } finally {
       setIsLoading(false)
     }

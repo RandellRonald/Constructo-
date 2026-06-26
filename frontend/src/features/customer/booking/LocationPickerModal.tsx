@@ -41,17 +41,19 @@ export default function LocationPickerModal({
   // Sync initial coordinates
   useEffect(() => {
     if (isOpen) {
-      if (initialLat && initialLng) {
-        setLat(initialLat)
-        setLng(initialLng)
-      }
+      const currentLat = initialLat || 9.9816
+      const currentLng = initialLng || 76.2999
+      
+      setLat(currentLat)
+      setLng(currentLng)
+      
       if (initialAddress) {
         setAddress(initialAddress)
-      } else if (initialLat && initialLng) {
-        performReverseGeocode(initialLat, initialLng)
+      } else {
+        performReverseGeocode(currentLat, currentLng)
       }
     }
-  }, [isOpen, initialLat, initialLng])
+  }, [isOpen, initialLat, initialLng, initialAddress])
 
   // Load Google Maps script and init
   useEffect(() => {
