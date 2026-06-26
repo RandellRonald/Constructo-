@@ -21,6 +21,22 @@ from app.services.pricing_service import PricingService
 router = APIRouter()
 
 
+@router.get("/reverse-geocode", response_model=APIResponse)
+async def reverse_geocode(
+    latitude: float = Query(...),
+    longitude: float = Query(...),
+    user: User = Depends(get_current_user)
+):
+    """Reverse geocode coordinates to get an address using MapService."""
+    from app.services.map_service import MapService
+    address = await MapService.reverse_geocode(latitude, longitude)
+    return APIResponse(
+        success=True,
+        message="Address geocoded",
+        data={"address": address}
+    )
+
+
 class CreateBookingRequest(BaseModel):
     service_category_id: int
     pickup_address: str

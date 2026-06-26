@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import {
   Bell, User, Navigation, MapPin, Phone, MessageCircle, 
   Wallet, CheckCircle2, Siren, Home, Calendar, Clock,
@@ -24,6 +24,54 @@ export default function ProviderDashboard() {
   const [timeLeft, setTimeLeft] = useState(0)
   const [responding, setResponding] = useState(false)
   const [respondError, setRespondError] = useState('')
+
+  // Slide to Accept states
+  const trackRef = useRef<HTMLDivElement>(null)
+  const dragX = useMotionValue(0)
+  const [dragRange, setDragRange] = useState(200)
+
+  useEffect(() => {
+    if (showOfferModal && trackRef.current) {
+      const updateRange = () => {
+        if (trackRef.current) {
+          setDragRange(trackRef.current.offsetWidth - 56)
+        }
+      }
+      const timer = setTimeout(updateRange, 100)
+      window.addEventListener('resize', updateRange)
+      return () => {
+        clearTimeout(timer)
+        window.removeEventListener('resize', updateRange)
+      }
+    }
+  }, [showOfferModal])
+
+  useEffect(() => {
+    if (!showOfferModal) {
+      dragX.set(0)
+    }
+  }, [showOfferModal])
+
+  const textOpacity = useTransform(dragX, [0, dragRange / 2], [1, 0])
+  const bgGradient = useTransform(
+    dragX,
+    [0, dragRange],
+    ['rgba(255, 255, 255, 0.05)', 'rgba(16, 185, 129, 0.25)']
+  )
+
+  const handleDragEnd = async (event: any, info: any) => {
+    const track = trackRef.current
+    if (!track) return
+
+    const currentX = dragX.get()
+    const maxDrag = track.offsetWidth - 56
+    if (currentX >= maxDrag * 0.8) {
+      animate(dragX, maxDrag, { type: 'spring', stiffness: 500, damping: 30 })
+      await handleRespond('accept')
+    } else {
+      animate(dragX, 0, { type: 'spring', stiffness: 400, damping: 25 })
+    }
+  }
 
   useEffect(() => {
     loadDashboard()
@@ -56,10 +104,11 @@ export default function ProviderDashboard() {
             setIncomingOffer(payload.data)
             setShowOfferModal(true)
             
-            // Calculate initial time left in seconds
+            // Calculate initial time left in seconds (max 30s for standard)
             const expiry = new Date(payload.data.expires_at).getTime()
             const now = new Date().getTime()
-            setTimeLeft(Math.max(0, Math.floor((expiry - now) / 1000)))
+            const diff = Math.max(0, Math.floor((expiry - now) / 1000))
+            setTimeLeft(payload.data.is_emergency ? diff : Math.min(30, diff))
           }
         } catch (err) {
           console.error('Error parsing WS message:', err)
@@ -131,7 +180,8 @@ export default function ProviderDashboard() {
 
         const expiry = new Date(offer.expires_at).getTime()
         const now = new Date().getTime()
-        setTimeLeft(Math.max(0, Math.floor((expiry - now) / 1000)))
+        const diff = Math.max(0, Math.floor((expiry - now) / 1000))
+        setTimeLeft(offer.is_emergency ? diff : Math.min(30, diff))
       }
     } catch (err) {
       console.error('Failed to fetch active offers:', err)
@@ -380,7 +430,7 @@ export default function ProviderDashboard() {
                       strokeWidth="6" 
                       fill="transparent" 
                       strokeDasharray="264"
-                      strokeDashoffset={264 - (264 * timeLeft) / (incomingOffer.is_emergency ? 300 : 120)}
+                      strokeDashoffset={264 - (264 * timeLeft) / (incomingOffer.is_emergency ? 300 : 30)}
                       className="transition-all duration-1000 ease-linear"
                     />
                   </svg>
@@ -390,19 +440,31 @@ export default function ProviderDashboard() {
                   </div>
                 </div>
 
-                <h3 className="font-extrabold text-lg text-primary">{incomingOffer.service_name}</h3>
-                <p className="text-text-secondary text-xs mt-1 mb-4 flex items-center justify-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-accent" /> {incomingOffer.pickup_address}
-                </p>
-
-                <div className="grid grid-cols-2 gap-3 bg-black/5 p-4 rounded-xl border border-border/50 text-left mb-5">
-                  <div>
-                    <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Estimated Payout</p>
-                    <p className="text-xl font-bold text-success">₹{incomingOffer.estimated_earnings?.toLocaleString()}</p>
+                <h3 className="font-black text-2xl text-accent uppercase tracking-wide">{incomingOffer.service_name}</h3>
+                
+                <div className="my-5 space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10 text-left">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Customer</p>
+                      <p className="text-sm font-extrabold text-text">{incomingOffer.customer_name || 'Rahul Menon'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Distance</p>
+                      <p className="text-sm font-extrabold text-text">{incomingOffer.distance_km ? `${incomingOffer.distance_km.toFixed(1)} km` : '5.2 km'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Job Duration</p>
-                    <p className="text-xl font-bold text-primary">{incomingOffer.duration_hours} Hours</p>
+
+                  <div className="h-px bg-white/5" />
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">ETA</p>
+                      <p className="text-sm font-extrabold text-accent">{incomingOffer.estimated_time_min ? `${incomingOffer.estimated_time_min} minutes` : '12 minutes'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Estimated Earnings</p>
+                      <p className="text-base font-extrabold text-success">₹{incomingOffer.estimated_earnings?.toLocaleString() || '12,000'}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -413,22 +475,43 @@ export default function ProviderDashboard() {
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="space-y-4">
+                  {/* Premium Slide-to-Accept Bar */}
+                  <motion.div 
+                    ref={trackRef}
+                    style={{ background: bgGradient }}
+                    className="relative w-full h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center p-1 overflow-hidden select-none"
+                  >
+                    <motion.div 
+                      style={{ opacity: textOpacity }}
+                      className="absolute inset-0 flex items-center justify-center text-xs font-bold text-text-secondary/70 pointer-events-none uppercase tracking-wider"
+                    >
+                      Slide to Accept Job
+                    </motion.div>
+                    
+                    <motion.div
+                      drag="x"
+                      style={{ x: dragX }}
+                      dragConstraints={{ left: 0, right: dragRange }}
+                      dragElastic={{ left: 0, right: 0.1 }}
+                      onDragEnd={handleDragEnd}
+                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-accent-dark hover:from-accent-dark hover:to-accent flex items-center justify-center cursor-grab active:cursor-grabbing text-white shadow-lg z-10 shrink-0"
+                    >
+                      {responding ? (
+                        <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      ) : (
+                        <ChevronRight className="w-6 h-6 animate-pulse" />
+                      )}
+                    </motion.div>
+                  </motion.div>
+
+                  {/* Decline Button */}
                   <button 
                     onClick={() => handleRespond('decline')}
                     disabled={responding}
-                    className="flex-1 py-3 bg-black/10 hover:bg-black/20 rounded-xl font-bold text-sm transition-colors text-text-secondary"
+                    className="w-full py-3 bg-black/10 hover:bg-black/20 text-text-secondary rounded-xl font-bold text-sm transition-colors"
                   >
-                    Decline
-                  </button>
-                  <button 
-                    onClick={() => handleRespond('accept')}
-                    disabled={responding}
-                    className="flex-1 py-3 bg-accent hover:bg-accent-dark text-white rounded-xl font-bold text-sm shadow-lg shadow-accent/20 flex justify-center items-center"
-                  >
-                    {responding ? (
-                      <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                    ) : "Accept Job"}
+                    Decline Job Offer
                   </button>
                 </div>
               </div>

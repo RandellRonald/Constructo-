@@ -34,19 +34,23 @@ async def update_provider_location(
     db: AsyncSession = Depends(get_db),
 ):
     """Update provider GPS location."""
-    log = TrackingLog(
+    from app.services.tracking_service import TrackingService
+    
+    payload = await TrackingService.process_location_update(
+        db=db,
         booking_id=request.booking_id,
         provider_id=user.id,
         latitude=request.latitude,
         longitude=request.longitude,
         speed=request.speed,
-        heading=request.heading,
-        recorded_at=datetime.now(timezone.utc),
+        heading=request.heading
     )
-    db.add(log)
-    await db.flush()
-
-    return APIResponse(success=True, message="Location updated")
+    
+    return APIResponse(
+        success=True,
+        message="Location updated",
+        data=payload
+    )
 
 
 @router.get("/bookings/{booking_id}/tracking", response_model=APIResponse)

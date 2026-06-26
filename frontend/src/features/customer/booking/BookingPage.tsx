@@ -7,6 +7,7 @@ import {
   X, Plus, IndianRupee
 } from 'lucide-react'
 import { bookingAPI } from '../../../services/api'
+import LocationPickerModal from './LocationPickerModal'
 
 const serviceCategories = [
   { id: 1, name: 'Earthmoving & Excavation', icon: Shovel, rate: 2500, color: 'from-amber-500 to-amber-600', desc: 'JCB, excavators, land clearing' },
@@ -29,6 +30,7 @@ export default function BookingPage() {
   const [isEmergency, setIsEmergency] = useState(false)
   const [description, setDescription] = useState('')
   const [photos, setPhotos] = useState<File[]>([])
+  const [isMapOpen, setIsMapOpen] = useState(false)
 
   // Coordinates and dynamic pricing
   const [lat, setLat] = useState<number | null>(null)
@@ -183,18 +185,19 @@ export default function BookingPage() {
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-muted" />
                     <input
+                      readOnly
                       value={address}
-                      onChange={e => setAddress(e.target.value)}
-                      placeholder="Search address or use GPS"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/60 border border-border focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none text-sm"
+                      onClick={() => setIsMapOpen(true)}
+                      placeholder="Tap to select location on Map"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/60 border border-border cursor-pointer focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none text-sm"
                     />
                   </div>
                   <button
                     type="button"
-                    onClick={handleUseGPS}
+                    onClick={() => setIsMapOpen(true)}
                     className="mt-2 text-xs text-secondary font-medium flex items-center gap-1 hover:underline"
                   >
-                    <MapPin className="w-3 h-3" /> Use current location
+                    <MapPin className="w-3 h-3" /> Select location on Map
                   </button>
                 </div>
 
@@ -454,6 +457,19 @@ export default function BookingPage() {
           )}
         </AnimatePresence>
       </div>
+
+      <LocationPickerModal
+        isOpen={isMapOpen}
+        onClose={() => setIsMapOpen(false)}
+        onConfirm={(confirmedLat, confirmedLng, confirmedAddr) => {
+          setLat(confirmedLat)
+          setLng(confirmedLng)
+          setAddress(confirmedAddr)
+        }}
+        initialLat={lat}
+        initialLng={lng}
+        initialAddress={address}
+      />
     </div>
   )
 }

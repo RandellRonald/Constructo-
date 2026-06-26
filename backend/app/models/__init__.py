@@ -5,7 +5,7 @@ from app.models.booking import (
     PricingRule, OvertimeCharge, BookingDispatchOffer, OfferStatus
 )
 from app.models.payment import Payment, Refund
-from app.models.tracking import TrackingLog
+from app.models.tracking import TrackingLog, TrackingHistory
 from app.models.review import Review, ReviewPhoto
 from app.models.invoice import Invoice
 from app.models.payout import Payout, ProviderEarning
@@ -16,7 +16,7 @@ __all__ = [
     "Booking", "BookingPhoto", "CompletionPhoto", "ServiceCategory",
     "PricingRule", "OvertimeCharge", "BookingDispatchOffer", "OfferStatus",
     "Payment", "Refund",
-    "TrackingLog",
+    "TrackingLog", "TrackingHistory",
     "Review", "ReviewPhoto",
     "Invoice",
     "Payout", "ProviderEarning",

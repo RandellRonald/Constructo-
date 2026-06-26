@@ -58,8 +58,37 @@ async def tracking_websocket(websocket: WebSocket, booking_id: int):
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
-            # Broadcast tracking updates to all watchers
-            await manager.send_to_channel(channel, message)
+            
+            if message.get("type") == "tracking_update":
+                lat = float(message.get("latitude", 0))
+                lon = float(message.get("longitude", 0))
+                speed = float(message.get("speed", 0))
+                heading = float(message.get("heading", 0))
+                
+                # Retrieve provider_id from message or lookup from database
+                provider_id = message.get("provider_id")
+                async with AsyncSessionLocal() as db:
+                    if not provider_id:
+                        from app.models.booking import Booking
+                        from sqlalchemy import select
+                        res = await db.execute(select(Booking.provider_id).where(Booking.id == booking_id))
+                        provider_id = res.scalar()
+                    
+                    if provider_id:
+                        from app.services.tracking_service import TrackingService
+                        await TrackingService.process_location_update(
+                            db=db,
+                            booking_id=booking_id,
+                            provider_id=int(provider_id),
+                            latitude=lat,
+                            longitude=lon,
+                            speed=speed,
+                            heading=heading
+                        )
+                        await db.commit()
+            else:
+                # Fallback to direct broadcast for generic messages
+                await manager.send_to_channel(channel, message)
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
 

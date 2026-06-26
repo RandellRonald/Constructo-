@@ -77,6 +77,7 @@ export const bookingAPI = {
   getHistory: () => api.get('/bookings/history'),
   getBooking: (id: number | string) => api.get(`/bookings/${id}`),
   getChatHistory: (bookingId: number | string) => api.get(`/bookings/${bookingId}/chat-history`),
+  reverseGeocode: (lat: number, lng: number) => api.get('/bookings/reverse-geocode', { params: { latitude: lat, longitude: lng } }),
 }
 
 // ─── Payment API ─────────────────────────────────────────────────

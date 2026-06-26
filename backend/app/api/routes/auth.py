@@ -1,7 +1,7 @@
 """
 Authentication API routes.
 """
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, Field
@@ -253,19 +253,45 @@ async def update_profile(
 
 @router.post("/profile/photo", response_model=APIResponse)
 async def update_profile_photo(
+    photo: UploadFile = File(...),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Update profile photo. Accepts multipart form with 'photo' field.
-    For now, stores a placeholder URL. In production, upload to Cloudinary.
+    Uploads to Cloudinary in production, falls back to dev path if credentials are not configured.
     """
-    # In production, use Cloudinary to upload the image:
-    # file = await request.form()
-    # result = cloudinary.uploader.upload(file['photo'].file)
-    # user.profile_photo_url = result['secure_url']
+    from app.core.config import settings
+    import logging
+    logger = logging.getLogger(__name__)
 
-    # Dev fallback — just acknowledge the upload
-    user.profile_photo_url = f"/api/v1/static/avatars/{user.id}.jpg"
+    if settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY and settings.CLOUDINARY_API_SECRET:
+        import cloudinary
+        import cloudinary.uploader
+        
+        try:
+            # Configure Cloudinary
+            cloudinary.config(
+                cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+                api_key=settings.CLOUDINARY_API_KEY,
+                api_secret=settings.CLOUDINARY_API_SECRET,
+                secure=True
+            )
+            # Upload to Cloudinary
+            result = cloudinary.uploader.upload(
+                photo.file,
+                folder="constructo/avatars",
+                public_id=f"avatar_{user.id}",
+                overwrite=True
+            )
+            user.profile_photo_url = result.get("secure_url")
+            logger.info(f"Successfully uploaded profile photo to Cloudinary for user {user.id}")
+        except Exception as e:
+            logger.error(f"Failed to upload profile photo to Cloudinary: {e}")
+            raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {str(e)}")
+    else:
+        # Dev fallback – just acknowledge the upload
+        user.profile_photo_url = f"/api/v1/static/avatars/{user.id}.jpg"
+        
     await db.flush()
 
     return APIResponse(

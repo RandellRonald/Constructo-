@@ -28,10 +28,17 @@ export default function BookingHistoryPage() {
         ? await bookingAPI.getActive()
         : await bookingAPI.getHistory()
       if (res.data.success) {
-        const data = res.data.data?.bookings || res.data.data || []
+        const rawData = res.data.data?.bookings || res.data.data || []
+        let dataArray: any[] = []
+        if (Array.isArray(rawData)) {
+          dataArray = rawData
+        } else if (rawData && typeof rawData === 'object') {
+          dataArray = [rawData]
+        }
+        
         const filtered = activeTab === 'active'
-          ? data
-          : data.filter((b: any) =>
+          ? dataArray
+          : dataArray.filter((b: any) =>
               activeTab === 'completed' ? b.status === 'completed' : b.status === 'cancelled'
             )
         setBookings(filtered)

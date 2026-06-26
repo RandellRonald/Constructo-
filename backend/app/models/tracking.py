@@ -25,3 +25,18 @@ class TrackingLog(Base):
     __table_args__ = (
         Index("idx_tracking_booking_time", "booking_id", "recorded_at"),
     )
+
+
+class TrackingHistory(Base):
+    """Historical GPS logs for providers."""
+    __tablename__ = "tracking_history"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    speed = Column(Float, nullable=True)
+    heading = Column(Float, nullable=True)
+    timestamp = Column(DateTime, nullable=False)
+
