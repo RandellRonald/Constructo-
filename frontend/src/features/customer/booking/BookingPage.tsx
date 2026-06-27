@@ -347,7 +347,7 @@ export default function BookingPage() {
               </div>
 
               <button onClick={() => setStep(3)} className="w-full mt-6 py-3.5 rounded-xl font-semibold text-white gradient-primary hover:opacity-90 flex items-center justify-center gap-2">
-                Review Booking <ArrowRight className="w-4 h-4" />
+                Continue to Booking Summary <ArrowRight className="w-4 h-4" />
               </button>
             </motion.div>
           )}
@@ -355,8 +355,8 @@ export default function BookingPage() {
           {/* Step 3: Review */}
           {step === 3 && (
             <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <h2 className="text-xl font-bold mb-1">Review Booking</h2>
-              <p className="text-text-secondary text-sm mb-6">Confirm details before payment</p>
+              <h2 className="text-xl font-bold mb-1">Booking Summary</h2>
+              <p className="text-text-secondary text-sm mb-6">Review your booking details</p>
 
               <div className="space-y-4">
                 <div className="glass-card p-5 space-y-3">
@@ -390,6 +390,20 @@ export default function BookingPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Site Photos */}
+                  {photos.length > 0 && (
+                    <div className="border-t border-border pt-3">
+                      <p className="text-xs text-text-muted font-semibold mb-2 flex items-center gap-1"><Camera className="w-3.5 h-3.5" /> Site Photos ({photos.length})</p>
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {photos.map((photo, i) => (
+                          <div key={i} className="w-16 h-16 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0 overflow-hidden border border-border">
+                            <img src={URL.createObjectURL(photo)} alt={`Site ${i + 1}`} className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Price Breakdown */}
@@ -450,7 +464,7 @@ export default function BookingPage() {
                 {isLoading ? (
                   <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                 ) : (
-                  <>Proceed to Payment <IndianRupee className="w-4 h-4" /></>
+                  <>Confirm Booking <IndianRupee className="w-4 h-4" /></>
                 )}
               </button>
             </motion.div>

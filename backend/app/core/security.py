@@ -1,6 +1,13 @@
 """
 Security utilities: JWT tokens, password hashing, and auth helpers.
 """
+# Monkeypatch passlib bcrypt issue with bcrypt >= 4.0.0
+import bcrypt
+if not hasattr(bcrypt, "__about__"):
+    class BcryptAbout:
+        __version__ = bcrypt.__version__
+    bcrypt.__about__ = BcryptAbout()
+
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 import uuid

@@ -158,4 +158,18 @@ export const adminAPI = {
   getLiveTracking: () => api.get('/admin/live-tracking'),
 }
 
+// ─── Maps API ────────────────────────────────────────────────────
+export const mapsAPI = {
+  getRoute: (originLat: number, originLon: number, destLat: number, destLon: number) =>
+    api.get('/maps/route', { params: { origin_lat: originLat, origin_lon: originLon, dest_lat: destLat, dest_lon: destLon } }),
+  getEta: (originLat: number, originLon: number, destLat: number, destLon: number) =>
+    api.get('/maps/eta', { params: { origin_lat: originLat, origin_lon: originLon, dest_lat: destLat, dest_lon: destLon } }),
+  searchAddress: (query: string) =>
+    api.get('/maps/search', { params: { q: query } }),
+  reverseGeocode: (lat: number, lon: number) =>
+    api.get('/maps/reverse-geocode', { params: { lat, lon } }),
+  snapToRoad: (lat: number, lon: number) =>
+    api.get('/maps/nearest', { params: { lat, lon } }),
+}
+
 export default api

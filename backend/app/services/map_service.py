@@ -1,12 +1,11 @@
 """
 Map Service Abstraction for Geocoding, Routing, and Distance Matrix.
-Supports Google Maps, MapCN, OpenStreetMap, and offline haversine calculations.
+Uses OpenStreetMap (Nominatim + OSRM) with offline haversine fallback.
 """
 import math
 import logging
 from typing import Dict, Any, List, Optional
 import httpx
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -34,110 +33,13 @@ class BaseMapProvider:
         raise NotImplementedError()
 
 
-class GoogleMapsProvider(BaseMapProvider):
-    """Google Maps implementation."""
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-
-    async def reverse_geocode(self, lat: float, lon: float) -> Optional[str]:
-        if not self.api_key:
-            return None
-        url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lon}&key={self.api_key}"
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            res = await client.get(url)
-            if res.status_code == 200:
-                data = res.json()
-                if data.get("status") == "OK" and data.get("results"):
-                    return data["results"][0]["formatted_address"]
-        return None
-
-    async def get_route(self, origin_lat: float, origin_lon: float, dest_lat: float, dest_lon: float) -> Optional[Dict[str, Any]]:
-        if not self.api_key:
-            return None
-        url = f"https://maps.googleapis.com/maps/api/directions/json?origin={origin_lat},{origin_lon}&destination={dest_lat},{dest_lon}&key={self.api_key}"
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            res = await client.get(url)
-            if res.status_code == 200:
-                data = res.json()
-                if data.get("status") == "OK" and data.get("routes"):
-                    route = data["routes"][0]
-                    # Convert Google Maps polyline to points list
-                    polyline = route["overview_polyline"]["points"]
-                    duration_sec = sum(leg["duration"]["value"] for leg in route["legs"])
-                    distance_m = sum(leg["distance"]["value"] for leg in route["legs"])
-                    
-                    # Decoded path points will be handled in frontend, or we pass basic coords
-                    return {
-                        "provider": "google",
-                        "polyline": polyline,
-                        "distance_km": round(distance_m / 1000.0, 2),
-                        "duration_min": round(duration_sec / 60.0, 1),
-                        "coordinates": [[origin_lat, origin_lon], [dest_lat, dest_lon]]
-                    }
-        return None
-
-    async def get_distance_matrix(self, origin_lat: float, origin_lon: float, dest_lat: float, dest_lon: float) -> Optional[Dict[str, Any]]:
-        if not self.api_key:
-            return None
-        url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_lat},{origin_lon}&destinations={dest_lat},{dest_lon}&key={self.api_key}"
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            res = await client.get(url)
-            if res.status_code == 200:
-                data = res.json()
-                if data.get("status") == "OK" and data.get("rows"):
-                    row = data["rows"][0]
-                    element = row["elements"][0]
-                    if element.get("status") == "OK":
-                        distance_m = element["distance"]["value"]
-                        duration_sec = element["duration"]["value"]
-                        return {
-                            "distance_km": round(distance_m / 1000.0, 2),
-                            "duration_min": round(duration_sec / 60.0, 1)
-                        }
-        return None
-
-
-class MapCNProvider(BaseMapProvider):
-    """MapCN Fallback Mock Provider."""
-    async def reverse_geocode(self, lat: float, lon: float) -> Optional[str]:
-        logger.info(f"MapCN fallback reverse geocoding for {lat},{lon}")
-        # MapCN simulation
-        return f"MapCN Location Near ({lat:.4f}, {lon:.4f})"
-
-    async def get_route(self, origin_lat: float, origin_lon: float, dest_lat: float, dest_lon: float) -> Optional[Dict[str, Any]]:
-        logger.info(f"MapCN fallback get_route for {origin_lat},{origin_lon} to {dest_lat},{dest_lon}")
-        dist = haversine_distance(origin_lat, origin_lon, dest_lat, dest_lon)
-        # Mock route coordinates
-        return {
-            "provider": "mapcn",
-            "polyline": "",
-            "distance_km": round(dist * 1.15, 2),
-            "duration_min": round((dist * 1.15 / 40.0) * 60.0, 1),
-            "coordinates": [
-                [origin_lat, origin_lon],
-                [origin_lat + (dest_lat - origin_lat)/2.0, origin_lon + (dest_lon - origin_lon)/2.0],
-                [dest_lat, dest_lon]
-            ]
-        }
-
-    async def get_distance_matrix(self, origin_lat: float, origin_lon: float, dest_lat: float, dest_lon: float) -> Optional[Dict[str, Any]]:
-        logger.info(f"MapCN fallback get_distance_matrix")
-        dist = haversine_distance(origin_lat, origin_lon, dest_lat, dest_lon)
-        # Assumed speed 40km/h
-        duration_min = (dist / 40.0) * 60.0
-        return {
-            "distance_km": round(dist * 1.15, 2),
-            "duration_min": max(1.0, round(duration_min * 1.15, 1))
-        }
-
-
 class OpenStreetMapProvider(BaseMapProvider):
-    """OSM/OSRM implementation."""
+    """OSM/OSRM implementation — primary provider."""
     async def reverse_geocode(self, lat: float, lon: float) -> Optional[str]:
         url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
         headers = {"User-Agent": "ConstructoApp/1.0 (contact@constructo.in)"}
         try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.get(url, headers=headers)
                 if res.status_code == 200:
                     data = res.json()
@@ -147,9 +49,9 @@ class OpenStreetMapProvider(BaseMapProvider):
         return None
 
     async def get_route(self, origin_lat: float, origin_lon: float, dest_lat: float, dest_lon: float) -> Optional[Dict[str, Any]]:
-        url = f"http://router.project-osrm.org/route/v1/driving/{origin_lon},{origin_lat};{dest_lon},{dest_lat}?overview=full&geometries=geojson"
+        url = f"https://router.project-osrm.org/route/v1/driving/{origin_lon},{origin_lat};{dest_lon},{dest_lat}?overview=full&geometries=geojson"
         try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.get(url)
                 if res.status_code == 200:
                     data = res.json()
@@ -174,9 +76,9 @@ class OpenStreetMapProvider(BaseMapProvider):
         return None
 
     async def get_distance_matrix(self, origin_lat: float, origin_lon: float, dest_lat: float, dest_lon: float) -> Optional[Dict[str, Any]]:
-        url = f"http://router.project-osrm.org/route/v1/driving/{origin_lon},{origin_lat};{dest_lon},{dest_lat}?overview=false"
+        url = f"https://router.project-osrm.org/route/v1/driving/{origin_lon},{origin_lat};{dest_lon},{dest_lat}?overview=false"
         try:
-            async with httpx.AsyncClient(timeout=4.0) as client:
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 res = await client.get(url)
                 if res.status_code == 200:
                     data = res.json()
@@ -197,11 +99,7 @@ class MapService:
     @staticmethod
     def _get_providers() -> List[BaseMapProvider]:
         providers = []
-        # Google Maps (Default)
-        providers.append(GoogleMapsProvider(api_key=settings.GOOGLE_MAPS_API_KEY))
-        # MapCN (First Fallback)
-        providers.append(MapCNProvider())
-        # OSM (Second Fallback)
+        # OSM/OSRM (Primary)
         providers.append(OpenStreetMapProvider())
         return providers
 

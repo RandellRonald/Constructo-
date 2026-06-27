@@ -2,6 +2,13 @@
 Constructo Backend – FastAPI Application
 Professional Site Services Across Kerala
 """
+# Monkeypatch passlib bcrypt issue with bcrypt >= 4.0.0
+import bcrypt
+if not hasattr(bcrypt, "__about__"):
+    class BcryptAbout:
+        __version__ = bcrypt.__version__
+    bcrypt.__about__ = BcryptAbout()
+
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -9,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.core.config import settings
-from app.api.routes import auth, customer, bookings, services, payments, tracking, completion, reviews, provider, admin
+from app.api.routes import auth, customer, bookings, services, payments, tracking, completion, reviews, provider, admin, maps
 from app.db.session import engine
 from app.db.base import Base
 from app.api.websocket import router as ws_router
@@ -73,6 +80,7 @@ app.include_router(completion.router, prefix="/api/v1", tags=["Completion"])
 app.include_router(reviews.router, prefix="/api/v1", tags=["Reviews"])
 app.include_router(provider.router, prefix="/api/v1", tags=["Provider"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+app.include_router(maps.router, prefix="/api/v1/maps", tags=["Maps"])
 
 # ─── WebSocket Routes ────────────────────────────────────────────────
 app.include_router(ws_router)

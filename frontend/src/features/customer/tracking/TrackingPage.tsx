@@ -1,16 +1,17 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, Navigation, Shield, User, Star, Headphones, Compass, Loader2 } from 'lucide-react'
+import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, Navigation, Shield, User, Star, Headphones, Loader2 } from 'lucide-react'
+import MapView from '../../../components/maps/MapView'
+import MapMarker from '../../../components/maps/MapMarker'
+import MapRoute from '../../../components/maps/MapRoute'
 import { trackingAPI } from '../../../services/api'
 import ChatInterface from '../../chat/ChatInterface'
-
-declare const google: any;
 
 export default function TrackingPage() {
   const { bookingId } = useParams()
   const navigate = useNavigate()
-  
+
   // State variables
   const [trackingData, setTrackingData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -18,16 +19,6 @@ export default function TrackingPage() {
   const [providerLoc, setProviderLoc] = useState<{ lat: number; lng: number; heading?: number; speed?: number } | null>(null)
   const [eta, setEta] = useState<number | null>(null)
   const [distance, setDistance] = useState<number | null>(null)
-
-  // Map references
-  const mapContainerRef = useRef<HTMLDivElement>(null)
-  const mapInstance = useRef<any>(null)
-  const customerMarker = useRef<any>(null)
-  const providerMarker = useRef<any>(null)
-  const directionsRendererInstance = useRef<any>(null)
-  
-  const [mapLoaded, setMapLoaded] = useState(false)
-  const [googleMapsError, setGoogleMapsError] = useState(false)
 
   // 1. Initial tracking load
   useEffect(() => {
@@ -68,7 +59,7 @@ export default function TrackingPage() {
 
     const connectWS = () => {
       ws = new WebSocket(wsUrl)
-      
+
       ws.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data)
@@ -100,162 +91,6 @@ export default function TrackingPage() {
     }
   }, [bookingId])
 
-  // 3. Load Google Maps SDK
-  useEffect(() => {
-    if (isLoading || !trackingData) return
-
-    // If already loaded
-    if ((window as any).google && (window as any).google.maps) {
-      initMap()
-      return
-    }
-
-    const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
-    const scriptId = 'google-maps-script'
-    let script = document.getElementById(scriptId) as HTMLScriptElement
-
-    if (!script) {
-      script = document.createElement('script')
-      script.id = scriptId
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}`
-      script.async = true
-      script.defer = true
-      
-      script.onload = () => initMap()
-      script.onerror = () => {
-        setGoogleMapsError(true)
-        setMapLoaded(true)
-      }
-      document.head.appendChild(script)
-    } else {
-      const interval = setInterval(() => {
-        if ((window as any).google && (window as any).google.maps) {
-          clearInterval(interval)
-          initMap()
-        }
-      }, 300)
-    }
-  }, [isLoading, trackingData])
-
-  const initMap = () => {
-    if (!mapContainerRef.current || !(window as any).google || !(window as any).google.maps || !trackingData) {
-      setGoogleMapsError(true)
-      setMapLoaded(true)
-      return
-    }
-
-    try {
-      const custLoc = {
-        lat: trackingData.customer_location.latitude,
-        lng: trackingData.customer_location.longitude
-      }
-
-      const mapOptions: any = {
-        center: custLoc,
-        zoom: 14,
-        styles: [
-          { elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-          { elementType: 'labels.text.stroke', stylers: [{ color: '#1e293b' }] },
-          { elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
-          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
-          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#334155' }] }
-        ],
-        disableDefaultUI: true,
-        zoomControl: false
-      }
-
-      const map = new (window as any).google.maps.Map(mapContainerRef.current, mapOptions)
-      mapInstance.current = map
-
-      // Add Customer Marker
-      customerMarker.current = new (window as any).google.maps.Marker({
-        position: custLoc,
-        map,
-        title: "Your Location",
-        icon: {
-          path: (window as any).google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: "#10b981", // Emerald Green
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2
-        }
-      })
-
-      // Directions renderer
-      directionsRendererInstance.current = new (window as any).google.maps.DirectionsRenderer({
-        map,
-        suppressMarkers: true,
-        polylineOptions: {
-          strokeColor: '#3b82f6',
-          strokeWeight: 5,
-          strokeOpacity: 0.8
-        }
-      })
-
-      setMapLoaded(true)
-    } catch (e) {
-      console.error('Error initializing tracking map:', e)
-      setGoogleMapsError(true)
-      setMapLoaded(true)
-    }
-  }
-
-  // 4. Update provider marker and route when coordinates change
-  useEffect(() => {
-    if (!mapLoaded || googleMapsError || !mapInstance.current || !providerLoc || !trackingData) return
-
-    const maps = (window as any).google.maps
-    const map = mapInstance.current
-    const provPosition = { lat: providerLoc.lat, lng: providerLoc.lng }
-    const custPosition = {
-      lat: trackingData.customer_location.latitude,
-      lng: trackingData.customer_location.longitude
-    }
-
-    // Upsert Provider Marker
-    if (!providerMarker.current) {
-      providerMarker.current = new maps.Marker({
-        position: provPosition,
-        map,
-        title: "Provider Location",
-        icon: {
-          path: maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 6,
-          rotation: providerLoc.heading || 0,
-          fillColor: "#3b82f6", // Accent Blue
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2
-        }
-      })
-    } else {
-      providerMarker.current.setPosition(provPosition)
-      const icon = providerMarker.current.getIcon() as any
-      if (icon) {
-        icon.rotation = providerLoc.heading || 0
-        providerMarker.current.setIcon(icon)
-      }
-    }
-
-    // Render Route
-    if (directionsRendererInstance.current) {
-      const directionsService = new maps.DirectionsService()
-      directionsService.route(
-        {
-          origin: provPosition,
-          destination: custPosition,
-          travelMode: maps.TravelMode.DRIVING
-        },
-        (result: any, status: any) => {
-          if (status === 'OK' && directionsRendererInstance.current) {
-            directionsRendererInstance.current.setDirections(result)
-          }
-        }
-      )
-    }
-  }, [mapLoaded, googleMapsError, providerLoc, trackingData])
-
   const statusSteps = [
     { key: 'created', label: 'Booking Created', icon: Shield },
     { key: 'assigned', label: 'Provider Assigned', icon: User },
@@ -280,6 +115,9 @@ export default function TrackingPage() {
     )
   }
 
+  const customerLat = trackingData?.customer_location?.latitude || 9.9816
+  const customerLng = trackingData?.customer_location?.longitude || 76.2999
+
   return (
     <div className="min-h-screen bg-surface pb-8">
       {/* Header */}
@@ -298,47 +136,53 @@ export default function TrackingPage() {
 
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-4">
         {/* Interactive Map View */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="h-72 rounded-3xl bg-[#0f172a] relative overflow-hidden shadow-lg border border-white/10"
         >
-          {/* Simulated loading or error state fallback */}
-          {(!mapLoaded || googleMapsError) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
-              <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(to_right,#334155_1px,transparent_1px),linear-gradient(to_bottom,#334155_1px,transparent_1px)] bg-[size:20px_20px]" />
-              <div className="z-10 space-y-2">
-                <Compass className="w-10 h-10 text-accent animate-spin mx-auto" />
-                <p className="text-sm font-bold text-text-secondary">Simulated Sandbox Live Map</p>
-                <p className="text-[10px] text-text-muted max-w-[280px]">
-                  {providerLoc 
-                    ? `Provider GPS updates active: (${providerLoc.lat.toFixed(4)}, ${providerLoc.lng.toFixed(4)})`
-                    : "Awaiting provider coordinates feed..."
-                  }
-                </p>
-              </div>
-            </div>
-          )}
+          <MapView lat={customerLat} lng={customerLng} zoom={14}>
+            {/* Customer Marker */}
+            <MapMarker lat={customerLat} lng={customerLng} variant="customer" title="Your Location" />
 
-          {/* Map canvas */}
-          <div 
-            ref={mapContainerRef} 
-            className="w-full h-full" 
-            style={{ display: googleMapsError ? 'none' : 'block' }}
-          />
+            {/* Provider Marker */}
+            {providerLoc && (
+              <MapMarker
+                lat={providerLoc.lat}
+                lng={providerLoc.lng}
+                heading={providerLoc.heading || 0}
+                variant="provider"
+                title="Provider Location"
+              />
+            )}
 
-          {/* ETA Overlay (Premium float bar) */}
-          <div className="absolute bottom-4 left-4 right-4 bg-[#1e293b]/90 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center justify-between shadow-xl">
+            {/* Route */}
+            {providerLoc && (
+              <MapRoute
+                originLat={providerLoc.lat}
+                originLng={providerLoc.lng}
+                destLat={customerLat}
+                destLng={customerLng}
+                onRouteInfo={(distKm, durMin) => {
+                  setDistance(distKm)
+                  setEta(durMin)
+                }}
+              />
+            )}
+          </MapView>
+
+          {/* ETA Overlay */}
+          <div className="absolute bottom-4 left-4 right-4 bg-[#1e293b]/90 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex items-center justify-between shadow-xl z-10">
             <div>
               <p className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Estimated Arrival</p>
               <p className="font-extrabold text-xl text-accent">
-                {eta !== null ? `${Math.round(eta)} min` : trackingData?.booking_status === 'arrived' ? 'Arrived' : '12 min'}
+                {eta !== null ? `${Math.round(eta)} min` : trackingData?.booking_status === 'arrived' ? 'Arrived' : '—'}
               </p>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-text-muted uppercase tracking-wider font-extrabold">Distance Remaining</p>
               <p className="font-extrabold text-xl text-text">
-                {distance !== null ? `${distance.toFixed(1)} km` : '3.2 km'}
+                {distance !== null ? `${distance.toFixed(1)} km` : '—'}
               </p>
             </div>
           </div>
@@ -361,7 +205,7 @@ export default function TrackingPage() {
               </div>
             </div>
             <div className="flex gap-3">
-              <a 
+              <a
                 href={`tel:${trackingData.provider_phone || '+919999999999'}`}
                 className="flex-1 py-3 bg-gradient-to-r from-accent to-accent-dark hover:opacity-90 text-white rounded-xl font-bold text-sm shadow-lg shadow-accent/20 flex items-center justify-center gap-2"
               >
@@ -417,7 +261,7 @@ export default function TrackingPage() {
         </motion.div>
 
         {/* Support Call Back */}
-        <button 
+        <button
           onClick={() => alert("Constructo Support helpline: 1800-456-7890")}
           className="w-full py-3 rounded-xl text-xs font-bold text-danger bg-danger/5 border border-danger/20 hover:bg-danger/10 transition-colors"
         >

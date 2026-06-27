@@ -1,0 +1,2910 @@
+=== MODULE 0 ===
+MODULE 0 PROMPT
+CONSTRUCTO – LANDING PAGE &
+AUTHENTICATION GATEWAY
+You are a Senior Product Designer, Senior Frontend Engineer, Senior Backend Engineer,
+and UX Architect.
+Build Module 0 of Constructo.
+This is NOT a demo page.
+This is a production-ready landing page and authentication gateway for the Constructo
+platform.
+PRODUCT
+Name:
+Constructo
+Tagline:
+Professional Site Services Across Kerala
+PRODUCT TYPE
+Construction & Site Services Marketplace Platform.
+Customers book services.
+Providers receive jobs.
+Administrators manage operations.
+IMPORTANT ARCHITECTURE RULE
+Constructo consists of:
+1. Customer App
+2. Provider App
+3. Admin Portal
+Customer and Provider are:
+TWO SEPARATE APPLICATIONS.
+They are NOT one application with role switching.
+However, they are interconnected through:
+● Same Backend
+● Same MySQL Database
+● Same WebSocket Server
+● Same Business Logic
+● Same Notification System
+Exactly like:
+● Uber Rider ↔ Uber Driver
+● Zomato Customer ↔ Delivery Partner
+PURPOSE OF 
+
+=== MODULE 0 ===
+MODULE 0
+Introduce Constructo.
+Explain the platform.
+Build trust.
+Explain services.
+Explain how the platform works.
+Route users into:
+Customer Application
+or
+Provider Application.
+ROUTES
+Landing Page:
+/
+Customer Login:
+/customer/login
+Customer Register:
+/customer/register
+Provider Login:
+/provider/login
+Provider Register:
+/provider/register
+TECH STACK
+Frontend:
+● React
+● TypeScript
+● Vite
+● Tailwind CSS
+● Framer Motion
+● React Router
+Backend:
+No business APIs required yet.
+Authentication routes only.
+DESIGN SYSTEM
+Do NOT create generic AI dashboard designs.
+Do NOT use orange colors.
+Do NOT use Bootstrap style components.
+DESIGN INSPIRATION
+Apple
+Uber
+Airbnb
+Stripe
+Linear
+DESIGN LANGUAGE
+Apple Liquid Glass
+Premium Glassmorphism
+Floating Components
+Large Touch Targets
+Smooth Animations
+Modern Typography
+Mobile First
+COLOR SYSTEM
+Primary:
+Midnight Blue
+#0F172A
+Secondary:
+Indigo
+#6366F1
+Accent:
+Cyan
+#06B6D4
+Success:
+Emerald
+#10B981
+Danger:
+Rose
+#EF4444
+Background:
+#F8FAFC
+GLASS STYLE
+Cards:
+● Blur
+● Soft Transparency
+● Rounded Corners
+● Soft Shadows
+MOBILE FIRST
+Primary design width:
+360px–430px.
+Desktop responsive.
+Tablet responsive.
+LANDING PAGE STRUCTURE
+SECTION 1
+Navigation Bar
+Left:
+Constructo Logo
+Center:
+Home
+Services
+How It Works
+For Providers
+About
+Support
+Right:
+Login
+Become Partner
+Navbar:
+Sticky.
+Glassmorphism.
+Hide on scroll down.
+Show on scroll up.
+SECTION 2
+Hero Section
+Headline:
+Professional Site Services Across Kerala
+Subheadline:
+Book Excavators, Cranes, Transportation and Site Services in Minutes.
+Primary Button:
+Book a Service
+Secondary Button:
+Become a Partner
+Background:
+Premium construction image/video.
+Animated gradient overlay.
+Subtle motion.
+SECTION 3
+Trust Section
+Display:
+Verified Providers
+Live Tracking
+Transparent Pricing
+Emergency Services
+Secure Payments
+Professional Support
+Use animated statistics cards.
+SECTION 4
+Services Section
+Cards:
+Earthmoving & Excavation
+Crane Services
+Transportation & Haulage
+Environmental Services
+Waste Management
+Each card:
+Icon
+Description
+Learn More Button
+Book Now Button
+Hover Animation.
+SECTION 5
+How Constructo Works
+Step 1
+Choose Service
+↓
+Step 2
+Select Location
+↓
+Step 3
+Choose Duration
+↓
+Step 4
+Pay Reservation Fee
+↓
+Step 5
+Provider Assigned
+↓
+Step 6
+Track Provider
+↓
+Step 7
+Service Completed
+Use animated timeline.
+SECTION 6
+Customer Features
+Features:
+Live Provider Tracking
+ETA Updates
+Call Provider
+Chat Provider
+Secure Payments
+Verified Professionals
+Emergency Booking
+Transparent Pricing
+SECTION 7
+Provider Section
+Headline:
+Grow Your Business With Constructo.
+Description:
+Receive nearby bookings and manage your business digitally.
+Features:
+Receive Customers
+Manage Vehicles
+Track Earnings
+Real-Time Notifications
+Wallet
+Analytics
+Button:
+Become a Partner
+SECTION 8
+Coverage Section
+Currently Available:
+Ernakulam
+Upcoming:
+Thrissur
+Kottayam
+Kozhikode
+Trivandrum
+All Kerala
+Display interactive map.
+SECTION 9
+Testimonials
+Customer cards.
+Ratings.
+Photos.
+Reviews.
+SECTION 10
+FAQ
+What services are available?
+How does pricing work?
+Can I track the provider?
+How are providers verified?
+How do refunds work?
+How do emergency bookings work?
+SECTION 11
+Footer
+Logo
+Services
+About
+Contact
+Privacy Policy
+Terms
+Social Links
+Copyright
+ROLE SELECTION GATEWAY
+After clicking Login.
+Show:
+Continue as Customer
+Continue as Provider
+Two large cards.
+CARD 1
+Customer
+Description:
+Book site services.
+Button:
+Continue as Customer
+Route:
+/customer/login
+CARD 2
+Provider
+Description:
+Receive service requests.
+Button:
+Continue as Provider
+Route:
+/provider/login
+CUSTOMER LOGIN SCREEN
+Methods:
+Phone OTP
+Google Login
+Email + Password
+Buttons:
+Login
+Create Account
+Forgot Password
+CUSTOMER REGISTER SCREEN
+Fields:
+Full Name
+Phone Number
+Email
+Password
+Confirm Password
+Terms Checkbox
+Create Account
+PROVIDER LOGIN SCREEN
+Methods:
+Phone OTP
+Email + Password
+PROVIDER REGISTER SCREEN
+Step 1
+Business Information
+↓
+Step 2
+Owner Information
+↓
+Step 3
+Service Categories
+↓
+Step 4
+District
+↓
+Step 5
+Create Account
+↓
+Verification Required
+PAGE FLOW
+Landing
+↓
+Role Selection
+↓
+Login/Register
+↓
+Authentication
+↓
+Dashboard
+ANIMATIONS
+Framer Motion.
+Smooth transitions.
+Spring animations.
+No excessive effects.
+ACCESSIBILITY
+WCAG AA.
+Keyboard Navigation.
+Large Touch Areas.
+Screen Reader Support.
+LOADING STATES
+Skeleton loaders.
+Shimmer effects.
+No default spinners.
+EMPTY STATES
+Professional illustrations.
+Helpful messages.
+Call to actions.
+ERROR STATES
+Network errors.
+Authentication errors.
+Validation errors.
+Friendly messages.
+Retry buttons.
+SEO
+Title:
+Constructo – Professional Site Services Across Kerala
+Meta Description:
+Book excavation, crane, transportation and site services across Kerala.
+Open Graph support.
+Structured metadata.
+TEST CASES
+Landing loads under 2 seconds.
+All buttons navigate correctly.
+Customer login routes correctly.
+Provider login routes correctly.
+Responsive on mobile.
+Responsive on tablet.
+Responsive on desktop.
+No broken links.
+ACCEPTANCE CRITERIA
+A first-time visitor should understand:
+What Constructo does.
+How it works.
+How to book a service.
+How to become a provider.
+Within 30 seconds.
+Users should reach login pages in one click.
+This module becomes the entry point of the entire Constructo ecosystem.
+
+
+=== MODULE 1 ===
+MODULE 1 PROMPT
+CONSTRUCTO – AUTHENTICATION
+SYSTEM
+You are a Senior Software Architect, Senior Backend Engineer, Senior Frontend Engineer,
+Security Engineer, and Database Architect.
+Build Module 1 of Constructo.
+This is NOT a demo authentication system.
+This is a production-ready authentication and authorization module for a multi-application
+marketplace platform.
+PRODUCT
+Name:
+Constructo
+Tagline:
+Professional Site Services Across Kerala
+ARCHITECTURE
+Constructo consists of:
+1. Customer Application
+2. Provider Application
+3. Admin Portal
+Customer App and Provider App are:
+COMPLETELY SEPARATE APPLICATIONS.
+However, they share:
+● Same FastAPI Backend
+● Same MySQL Database
+● Same Authentication Service
+● Same Notification Service
+● Same WebSocket Server
+Exactly like:
+● Uber Rider ↔ Uber Driver
+● Zomato Customer ↔ Delivery Partner
+IMPORTANT RULE
+Do NOT create separate authentication backends.
+Do NOT create separate databases.
+Use one authentication service.
+TECHNOLOGY STACK
+Frontend
+● React
+● TypeScript
+● Vite
+● Tailwind CSS
+● React Router
+● TanStack Query
+● React Hook Form
+● Zod Validation
+Backend
+● FastAPI
+● SQLAlchemy
+● Alembic
+● Pydantic
+Database
+● MySQL 8
+Authentication
+● JWT
+● Refresh Tokens
+● OTP Verification
+● Google OAuth (optional)
+Notifications
+● Email
+● SMS OTP Provider
+PURPOSE OF MODULE
+Provide secure authentication for:
+Customers
+Providers
+Administrators
+USER TYPES
+Customer
+Provider
+Admin
+AUTHENTICATION FEATURES
+Customer:
+● Register
+● Login
+● Logout
+● Forgot Password
+● Reset Password
+● Phone Verification
+● Session Management
+Provider:
+● Register
+● Login
+● Logout
+● Forgot Password
+● Reset Password
+● Phone Verification
+● Session Management
+Admin:
+● Secure Login
+● Logout
+● Session Management
+AUTHENTICATION FLOW
+Register
+↓
+Phone Verification
+↓
+Account Created
+↓
+Generate JWT
+↓
+Login
+↓
+Dashboard
+CUSTOMER REGISTRATION FLOW
+Landing
+↓
+Customer Register
+↓
+Enter Information
+↓
+Send OTP
+↓
+Verify OTP
+↓
+Create Account
+↓
+Generate JWT
+↓
+Customer Dashboard
+PROVIDER REGISTRATION FLOW
+Landing
+↓
+Provider Register
+↓
+Enter Information
+↓
+Verify OTP
+↓
+Create Account
+↓
+Verification Pending
+↓
+Provider Dashboard
+LOGIN FLOW
+Enter Credentials
+↓
+Validate
+↓
+Generate Access Token
+↓
+Generate Refresh Token
+↓
+Create Session
+↓
+Dashboard
+LOGOUT FLOW
+Logout
+↓
+Revoke Session
+↓
+Delete Tokens
+↓
+Redirect To Login
+PASSWORD RESET FLOW
+Forgot Password
+↓
+Send OTP
+↓
+Verify OTP
+↓
+Set New Password
+↓
+Login
+FRONTEND ROUTES
+Customer Login
+/customer/login
+Customer Register
+/customer/register
+Customer Forgot Password
+/customer/forgot-password
+Provider Login
+/provider/login
+Provider Register
+/provider/register
+Provider Forgot Password
+/provider/forgot-password
+Admin Login
+/admin/login
+CUSTOMER REGISTRATION SCREEN
+Fields:
+Full Name
+Phone Number
+Email
+Password
+Confirm Password
+Terms Checkbox
+Create Account Button
+Login Link
+PROVIDER REGISTRATION SCREEN
+Fields:
+Business Name
+Owner Name
+Phone Number
+Email
+District
+Service Categories
+Password
+Confirm Password
+Create Account Button
+Login Link
+LOGIN SCREEN
+Fields:
+Phone or Email
+Password
+Remember Me
+Login Button
+Forgot Password
+Register Link
+OTP SCREEN
+Fields:
+6 Digit OTP
+Verify Button
+Resend Button
+Countdown Timer
+VALIDATIONS
+Phone Number:
+Required
+Must be valid.
+Email:
+Required.
+Must be unique.
+Password:
+Minimum:
+8 characters.
+Must contain:
+Uppercase
+Lowercase
+Number
+Special Character
+Confirm Password:
+Must match.
+DATABASE TABLES
+users
+otp_verifications
+user_sessions
+notifications
+admin_users
+DATABASE DESIGN
+users
+id
+name
+email
+phone
+password_hash
+role
+is_phone_verified
+status
+created_at
+updated_at
+otp_verifications
+id
+phone
+otp_code
+expires_at
+is_verified
+created_at
+user_sessions
+id
+user_id
+jwt_id
+device_name
+ip_address
+last_activity
+created_at
+API ENDPOINTS
+POST
+/api/v1/auth/register
+POST
+/api/v1/auth/login
+POST
+/api/v1/auth/logout
+POST
+/api/v1/auth/send-otp
+POST
+/api/v1/auth/verify-otp
+POST
+/api/v1/auth/forgot-password
+POST
+/api/v1/auth/reset-password
+GET
+/api/v1/auth/me
+POST
+/api/v1/auth/refresh
+API RESPONSE
+{
+"success": true,
+"message": "",
+"data": {}
+}
+JWT SYSTEM
+Generate:
+Access Token
+Refresh Token
+Store session in database.
+SECURITY REQUIREMENTS
+Password Hashing:
+Bcrypt
+JWT Authentication
+Role Based Access Control
+Rate Limiting
+Request Validation
+Input Sanitization
+CSRF Protection
+Brute Force Protection
+Session Revocation
+NOTIFICATION EVENTS
+Customer Registration Success
+Provider Registration Success
+OTP Sent
+Password Reset
+Login Alerts (optional)
+ERROR HANDLING
+Invalid Credentials
+Invalid OTP
+Expired OTP
+Duplicate Email
+Duplicate Phone
+Network Error
+Account Suspended
+Unauthorized Access
+LOADING STATES
+Button Loading
+Skeleton Loading
+OTP Verification Loading
+EMPTY STATES
+No Sessions
+No Notifications
+BUTTON FLOWS
+Register Button
+↓
+Validate
+↓
+Send OTP
+↓
+OTP Screen
+Verify Button
+↓
+Verify OTP
+↓
+Create Account
+↓
+Dashboard
+Login Button
+↓
+Validate
+↓
+Generate JWT
+↓
+Dashboard
+MODULE DEPENDENCIES
+Depends On:
+Module 0
+Used By:
+Every module in Constructo.
+Modules 2–26 require authentication.
+ADMIN AUTHENTICATION
+Admin login only.
+No registration.
+Admin accounts created by database seeding.
+TEST CASES
+Customer Registration
+Provider Registration
+OTP Verification
+Login
+Logout
+Password Reset
+Invalid OTP
+Duplicate Phone
+Duplicate Email
+Expired Session
+JWT Refresh
+Unauthorized Access
+Role Permissions
+PERFORMANCE TARGETS
+Login:
+<500ms
+OTP Verification:
+<5 seconds
+Session Validation:
+<200ms
+ACCEPTANCE CRITERIA
+Customer can:
+Register
+Login
+Logout
+Reset Password
+Provider can:
+Register
+Login
+Logout
+Reset Password
+Admin can:
+Login
+Logout
+JWT Authentication works.
+Sessions work.
+Security protections work.
+All flows are production-ready.
+No fake buttons.
+No placeholder authentication.
+Every screen, API, database operation, and navigation flow must work end-to-end.
+
+
+=== MODULE 2 ===
+MODULE 2 PROMPT
+CONSTRUCTO – CUSTOMER
+DASHBOARD
+You are a Senior Product Designer, Senior Frontend Engineer, Senior Backend Engineer,
+UX Architect, and Database Architect.
+Build Module 2 of Constructo.
+This is NOT a demo dashboard.
+This is a production-ready Customer Dashboard for a marketplace platform.
+PRODUCT
+Constructo
+Professional Site Services Across Kerala
+PURPOSE
+The Customer Dashboard is the home screen after customer login.
+It should allow customers to:
+● Quickly book services
+● View active bookings
+● Track providers
+● View notifications
+● Access support
+● Manage profile
+● View booking history
+This screen should feel similar to:
+Uber
+Zomato
+Swiggy
+Airbnb
+but designed for Construction Services.
+DEPENDENCIES
+Depends On:
+Module 0 → Landing Page
+Module 1 → Authentication
+USED BY
+Module 3 → Booking System
+Module 4 → Payments
+Module 5 → Tracking
+Module 7 → Reviews
+Module 8 → Support
+Module 10 → Customer Profile
+AUTHORIZATION
+Only:
+Customer Role
+can access this dashboard.
+If role ≠ customer:
+Redirect.
+ROUTE
+/customer/dashboard
+PAGE OBJECTIVE
+Customer should be able to book a service in:
+Less than 60 seconds.
+No complicated interface.
+No clutter.
+Minimal.
+Premium.
+Easy to use.
+DESIGN SYSTEM
+Apple Liquid Glass.
+Modern.
+Premium.
+Not AI-generated templates.
+No orange colors.
+COLOR SYSTEM
+Primary:
+Midnight Blue
+#0F172A
+Secondary:
+Indigo
+#6366F1
+Accent:
+Cyan
+#06B6D4
+Success:
+Emerald
+#10B981
+Danger:
+Rose
+#EF4444
+MOBILE FIRST
+Primary Design Width:
+360px–430px
+DASHBOARD STRUCTURE
+SECTION 1
+Header
+Display:
+Greeting
+Customer Name
+Profile Photo
+Notification Bell
+Support Icon
+Example:
+Good Morning, Randell 👋
+HEADER ACTIONS
+Notification Button
+↓
+Notification Screen
+Profile Button
+↓
+Profile Screen
+Support Button
+↓
+Support Screen
+SECTION 2
+Quick Book Card
+Large Hero Card.
+Headline:
+What service do you need today?
+Button:
+Book Service
+This is the primary CTA.
+Button Flow:
+Book Service
+↓
+Module 3
+Service Selection Screen
+SECTION 3
+Service Categories
+Display cards:
+Earthmoving & Excavation
+Crane Services
+Transportation & Haulage
+Environmental Services
+Waste Management
+Each card contains:
+Icon
+Title
+Short Description
+Book Button
+Button Flow:
+Category Click
+↓
+Module 3
+Pre-select category
+SECTION 4
+Active Booking Card
+Display only if active booking exists.
+Information:
+Booking ID
+Service Type
+Status
+Provider Name
+ETA
+Tracking Button
+Call Button
+Chat Button
+Status:
+Searching
+Assigned
+En Route
+Arrived
+In Progress
+Completed
+Cancelled
+Tracking Button
+↓
+Module 5
+Live Tracking
+Call Button
+↓
+Phone Dialer
+Chat Button
+↓
+Module 25
+Communication Engine
+SECTION 5
+Recent Bookings
+Display:
+Last 5 bookings.
+Information:
+Booking ID
+Service
+Date
+Amount
+Status
+View Details Button
+View Details
+↓
+Booking Details Screen
+SECTION 6
+Emergency Booking Card
+Headline:
+Need Immediate Assistance?
+Button:
+Emergency Booking
+Flow:
+Emergency Booking
+↓
+Module 21
+Emergency Engine
+SECTION 7
+Saved Locations
+Display:
+Home
+Office
+Other
+Buttons:
+Add
+Edit
+Delete
+Used later in:
+Module 3.
+SECTION 8
+Notifications Preview
+Display latest:
+Booking Updates
+Provider Updates
+Refund Updates
+Messages
+View All
+↓
+Module 9
+Notifications
+SECTION 9
+Support Card
+Buttons:
+Create Ticket
+Contact Support
+FAQ
+Flow:
+↓
+Module 8
+Support System
+SECTION 10
+Bottom Navigation
+Home
+Bookings
+Track
+Notifications
+Profile
+FRONTEND COMPONENTS
+DashboardHeader
+QuickBookCard
+ServiceCategoryCard
+ActiveBookingCard
+BookingHistoryCard
+EmergencyCard
+SavedLocationsCard
+NotificationPreviewCard
+BottomNavigation
+FRONTEND STATE
+Loading
+Error
+Success
+Empty Dashboard
+No Active Booking
+No Booking History
+No Notifications
+API ENDPOINTS
+GET
+/api/v1/customer/dashboard
+GET
+/api/v1/bookings/active
+GET
+/api/v1/bookings/history
+GET
+/api/v1/notifications/latest
+GET
+/api/v1/locations/saved
+API RESPONSE
+{
+"success": true,
+"message": "",
+"data": {}
+}
+DATABASE TABLES USED
+users
+bookings
+notifications
+reviews
+saved_locations
+conversations
+tracking_logs
+BACKEND FLOW
+Customer Login
+↓
+JWT Validation
+↓
+Fetch Dashboard Data
+↓
+Fetch Active Booking
+↓
+Fetch Notifications
+↓
+Fetch Booking History
+↓
+Return Dashboard Payload
+PERFORMANCE REQUIREMENTS
+Dashboard Load:
+<2 seconds
+Booking History:
+<1 second
+Notifications:
+<500ms
+WEBSOCKET INTEGRATION
+Channel:
+/ws/customer/{customer_id}
+Used For:
+New Booking Updates
+Provider Accepted
+Provider Arrived
+Messages
+Refund Updates
+Notifications
+Dashboard refreshes automatically.
+No manual refresh.
+NOTIFICATION EVENTS
+Provider Accepted Booking
+Provider Arrived
+New Message
+Booking Completed
+Refund Approved
+Emergency Updates
+ERROR HANDLING
+No Internet
+Server Error
+Unauthorized
+Session Expired
+No Active Booking
+No Notifications
+BUTTON FLOW MATRIX
+Book Service
+↓
+Module 3
+Track Booking
+↓
+Module 5
+Call Provider
+↓
+Phone Dialer
+Chat Provider
+↓
+Module 25
+Notifications
+↓
+Module 9
+Profile
+↓
+Module 10
+Support
+↓
+Module 8
+TEST CASES
+Dashboard Loads
+No Active Booking State
+Active Booking State
+Service Category Navigation
+Emergency Booking
+Tracking Navigation
+Notifications
+Profile Navigation
+Support Navigation
+WebSocket Updates
+Session Expiration
+ACCEPTANCE CRITERIA
+Customer should be able to:
+Understand the dashboard immediately.
+Book services within 60 seconds.
+Track active providers.
+Access support quickly.
+See notifications instantly.
+Navigate the application easily.
+Dashboard must feel:
+Premium
+Simple
+Modern
+Fast
+Production Ready
+No fake buttons.
+No placeholder screens.
+Every component, API, database operation, WebSocket update, and navigation flow must
+work end-to-end.
+
+
+=== MODULE 3 ===
+MODULE 3 PROMPT
+CONSTRUCTO – SERVICE SELECTION &
+BOOKING SYSTEM
+You are a Senior Product Manager, Senior Software Architect, Senior Backend Engineer,
+Senior Frontend Engineer, UX Designer, Database Architect, and QA Engineer.
+Build Module 3 of Constructo.
+This is NOT a demo booking form.
+This is the core booking engine of the platform.
+Everything in the platform starts from this module.
+PRODUCT
+Constructo
+Professional Site Services Across Kerala
+PURPOSE
+Allow customers to:
+● Select a service
+● Select a location
+● Choose booking duration
+● Upload site photos
+● Add requirements
+● Review pricing
+● Create booking
+● Proceed to payment
+The booking experience should be:
+Simple
+Fast
+Beautiful
+Minimal
+Book a service in under:
+60 seconds.
+IMPORTANT
+DO NOT create a complicated booking form.
+DO NOT ask unnecessary information.
+Keep the booking process simple.
+Inspired by:
+Uber
+Zomato
+Swiggy
+Airbnb
+MODULE DEPENDENCIES
+Depends On:
+Module 1
+Authentication
+Module 2
+Customer Dashboard
+Used By:
+Module 4
+Payment System
+Module 5
+Tracking
+Module 16
+Dispatch Engine
+Module 17
+Pricing Engine
+Module 18
+Coverage Engine
+Module 21
+Emergency Booking Engine
+Module 25
+Communication Engine
+ROUTES
+/customer/book
+/customer/book/review
+/customer/book/success
+BOOKING FLOW
+Dashboard
+↓
+Choose Service
+↓
+Choose Location
+↓
+Choose Duration
+↓
+Upload Photos
+↓
+Add Description
+↓
+Review Booking
+↓
+Proceed To Payment
+↓
+Booking Created
+↓
+Dispatch Engine Starts
+STEP 1
+SERVICE SELECTION
+Display:
+Earthmoving & Excavation
+Crane Services
+Transportation & Haulage
+Environmental Services
+Waste Management
+Each card contains:
+Image
+Title
+Description
+Book Button
+Selecting a service:
+↓
+Prepares pricing engine.
+STEP 2
+LOCATION SELECTION
+Customer can choose:
+1. Current GPS
+2. Manual Pin Selection
+3. Address Search
+4. Saved Locations
+GPS FLOW
+Request Location Permission
+↓
+Get Coordinates
+↓
+Reverse Geocode
+↓
+Display Address
+MANUAL FLOW
+Open Map
+↓
+Drag Pin
+↓
+Confirm Location
+SEARCH FLOW
+Google Places Autocomplete.
+DATABASE FIELDS
+pickup_address
+pickup_latitude
+pickup_longitude
+STEP 3
+BOOKING DURATION
+Customer books by hours.
+Examples:
+1 Hour
+2 Hours
+4 Hours
+8 Hours
+Custom Hours
+Display:
+Estimated Base Price.
+Pricing is calculated by:
+Module 17
+Pricing Engine.
+STEP 4
+UPLOAD PHOTOS
+Purpose:
+Help provider understand the work.
+Optional:
+Maximum:
+10 photos.
+Allowed:
+jpg
+jpeg
+png
+webp
+Maximum Size:
+10 MB
+CLOUDINARY INTEGRATION
+Cloudinary SDK is required.
+Cloudinary MCP is preconfigured.
+Use Cloudinary MCP tools for:
+Asset upload
+Metadata
+Folder management
+Asset analysis
+Upload Flow
+Frontend
+↓
+FastAPI
+↓
+Cloudinary SDK
+↓
+Cloudinary MCP
+↓
+secure_url
+↓
+Save in MySQL
+Never store physical files.
+Only store:
+public_id
+secure_url
+metadata
+FOLDER
+constructo/bookings/
+STEP 5
+DESCRIPTION
+Field:
+Describe your requirement.
+Maximum:
+1000 characters.
+Optional.
+STEP 6
+BOOKING REVIEW
+Display:
+Service Type
+Location
+Duration
+Photos
+Estimated Price
+Reservation Fee
+Cancellation Policy
+Terms
+Button:
+Proceed To Payment
+EMERGENCY BOOKING
+Customer can choose:
+Emergency Service.
+Display:
+Emergency Fee.
+Priority dispatch.
+Flow:
+↓
+Module 21
+Emergency Booking Engine.
+FRONTEND COMPONENTS
+ServiceCard
+LocationCard
+MapPicker
+SearchAddressInput
+SavedLocationCard
+DurationSelector
+PhotoUploader
+BookingDescriptionInput
+BookingReviewCard
+EmergencyBookingCard
+BottomActionBar
+UI RULES
+Apple Liquid Glass.
+Premium.
+Minimal.
+No orange colors.
+Large buttons.
+Large touch areas.
+Floating cards.
+BOOKING SCREEN STATES
+Loading
+No GPS Permission
+No Internet
+No Saved Locations
+Uploading Photos
+Creating Booking
+Payment Pending
+DATABASE TABLES
+bookings
+booking_photos
+service_categories
+saved_locations
+pricing_rules
+notifications
+BOOKINGS TABLE
+id
+booking_number
+customer_id
+service_category_id
+pickup_address
+pickup_latitude
+pickup_longitude
+description
+duration_hours
+estimated_price
+reservation_fee
+is_emergency
+status
+verification_code
+created_at
+updated_at
+BOOKING PHOTOS
+id
+booking_id
+cloudinary_public_id
+cloudinary_secure_url
+metadata_json
+created_at
+BOOKING STATUS
+Draft
+Payment Pending
+Created
+Searching
+Assigned
+En Route
+Arrived
+Verified
+In Progress
+Completed
+Cancelled
+No Provider Available
+API ENDPOINTS
+GET
+/api/v1/services
+GET
+/api/v1/locations/saved
+POST
+/api/v1/bookings/upload-photo
+POST
+/api/v1/bookings/calculate-price
+POST
+/api/v1/bookings
+GET
+/api/v1/bookings/{booking_id}
+BACKEND FLOW
+Customer creates booking.
+↓
+Validate JWT.
+↓
+Validate Service.
+↓
+Validate Location.
+↓
+Calculate Pricing.
+↓
+Upload Photos.
+↓
+Create Booking Draft.
+↓
+Return Review Screen.
+↓
+Proceed To Payment.
+PRICING FLOW
+Booking Duration
+↓
+Pricing Engine
+↓
+Base Price
+↓
+Emergency Fee
+↓
+Reservation Fee
+↓
+Estimated Total
+AFTER PAYMENT
+Booking Created.
+↓
+Dispatch Engine Starts.
+↓
+Search Provider.
+NOTIFICATION EVENTS
+Booking Created.
+Payment Pending.
+Provider Assigned.
+No Provider Available.
+Emergency Booking Created.
+WEBSOCKET
+Channel:
+/ws/customer/{customer_id}
+Real-time updates:
+Booking status.
+Provider assignment.
+Payment status.
+VALIDATIONS
+Service Required.
+Location Required.
+Duration Required.
+Maximum:
+10 photos.
+Photo type validation.
+Photo size validation.
+Emergency fee validation.
+ERROR HANDLING
+No GPS Permission.
+Photo Upload Failed.
+Invalid Location.
+Invalid Service.
+Price Calculation Failed.
+Booking Creation Failed.
+Server Error.
+Network Error.
+BUTTON FLOW MATRIX
+Book Service
+↓
+Select Service
+Select Location
+↓
+Review
+Proceed To Payment
+↓
+Module 4
+Emergency Booking
+↓
+Priority Dispatch
+Upload Photos
+↓
+Cloudinary
+TEST CASES
+GPS Location.
+Manual Pin Selection.
+Address Search.
+Saved Location Selection.
+Photo Upload.
+Booking Creation.
+Emergency Booking.
+Pricing Calculation.
+No Internet.
+Cloudinary Upload Failure.
+Booking Validation.
+ACCEPTANCE CRITERIA
+Customer can:
+Book a service within 60 seconds.
+Select location easily.
+Upload photos.
+Choose duration.
+Review pricing.
+Create booking successfully.
+Booking creation automatically starts:
+Payment
+↓
+Dispatch
+↓
+Provider Search.
+No fake buttons.
+No placeholder forms.
+Every API, screen, database operation, Cloudinary upload, notification, and navigation flow
+must work end-to-end in production.
+
+
+=== MODULE 4 ===
+MODULE 4 PROMPT
+CONSTRUCTO – PAYMENT SYSTEM &
+RESERVATION FEE ENGINE
+You are a Senior Software Architect, Senior Backend Engineer, Senior Payment Systems
+Engineer, Senior Frontend Engineer, Database Architect, and QA Engineer.
+Build Module 4 of Constructo.
+This is NOT a demo payment page.
+This is a production-ready payment and reservation system.
+PRODUCT
+Constructo
+Professional Site Services Across Kerala
+PURPOSE
+Allow customers to:
+● Pay reservation fee
+● Complete booking activation
+● View payment status
+● View payment history
+● Request refunds
+● Pay overtime charges
+● Pay additional service charges
+This module activates the booking.
+Without successful payment:
+Booking is NOT created.
+Dispatch Engine should NOT start.
+MODULE DEPENDENCIES
+Depends On:
+Module 1 → Authentication
+Module 3 → Booking System
+Used By:
+Module 5 → Live Tracking
+Module 6 → Invoice
+Module 14 → Provider Wallet
+Module 16 → Dispatch Engine
+Module 17 → Pricing Engine
+Module 24 → Operations Center
+Module 26 → Master Admin
+PAYMENT PROVIDER
+Razorpay
+Currency:
+INR
+IMPORTANT
+Do NOT create fake payments.
+Use real Razorpay integration.
+RAZORPAY MCP INTEGRATION
+Razorpay MCP Server is preconfigured.
+Integrate Razorpay MCP tools for:
+● Order Creation
+● Payment Verification
+● Refund Creation
+● Payment Status Fetching
+● Settlement Information
+● Test Generation
+● API Validation
+This integration is for development and code generation.
+Production payment flow:
+Frontend
+↓
+FastAPI
+↓
+Razorpay APIs
+↓
+MySQL
+PAYMENT FLOW
+Booking Review
+↓
+Proceed To Payment
+↓
+Create Razorpay Order
+↓
+Open Payment Sheet
+↓
+Customer Pays
+↓
+Payment Success
+↓
+Verify Payment
+↓
+Booking Activated
+↓
+Dispatch Engine Starts
+FAILURE FLOW
+Payment Failed
+↓
+Booking remains:
+Payment Pending
+↓
+Customer can retry.
+PAYMENT TYPES
+Reservation Fee
+Emergency Fee
+Overtime Charges
+Additional Charges
+Penalty Charges (Future)
+RESERVATION FEE
+Purpose:
+Reduce fake bookings.
+Example:
+₹200
+BOOKING ACTIVATION RULE
+No Payment
+=
+No Booking Activation
+No Dispatch
+No Provider Search
+FRONTEND ROUTES
+/customer/payment
+/customer/payment/success
+/customer/payment/failed
+/customer/payments
+PAYMENT SCREEN
+Display:
+Service
+Location
+Duration
+Base Price
+Emergency Fee
+Reservation Fee
+Taxes
+Estimated Total
+Buttons:
+Pay Now
+Cancel
+PAYMENT SUCCESS SCREEN
+Display:
+Payment Successful
+Booking Number
+Amount Paid
+Download Receipt
+Track Booking Button
+PAYMENT FAILURE SCREEN
+Display:
+Payment Failed
+Retry Button
+Contact Support Button
+PAYMENT HISTORY SCREEN
+Display:
+Booking Number
+Payment Type
+Amount
+Status
+Date
+Receipt
+DATABASE TABLES
+payments
+refunds
+wallet_transactions
+notifications
+bookings
+PAYMENTS TABLE
+id
+booking_id
+customer_id
+razorpay_order_id
+razorpay_payment_id
+razorpay_signature
+payment_type
+amount
+currency
+status
+paid_at
+created_at
+updated_at
+PAYMENT STATUS
+Created
+Pending
+Paid
+Failed
+Refunded
+Partially Refunded
+Cancelled
+REFUNDS TABLE
+id
+booking_id
+payment_id
+amount
+reason
+status
+admin_id
+processed_at
+created_at
+REFUND STATUS
+Pending
+Approved
+Processing
+Completed
+Rejected
+API ENDPOINTS
+POST
+/api/v1/payments/create-order
+POST
+/api/v1/payments/verify
+GET
+/api/v1/payments/{id}
+GET
+/api/v1/payments/history
+POST
+/api/v1/refunds/request
+GET
+/api/v1/refunds
+BACKEND FLOW
+Customer clicks:
+Pay Now
+↓
+Validate Booking
+↓
+Create Razorpay Order
+↓
+Return Order Details
+↓
+Open Razorpay Checkout
+↓
+Customer Pays
+↓
+Verify Signature
+↓
+Save Payment
+↓
+Activate Booking
+↓
+Start Dispatch Engine
+PAYMENT VERIFICATION
+Verify:
+Order ID
+Payment ID
+Signature
+Amount
+Booking
+PAYMENT FAILURE FLOW
+Payment Failure
+↓
+Store Failed Transaction
+↓
+Return Failure Screen
+↓
+Allow Retry
+RETRY FLOW
+Retry Payment
+↓
+Generate New Order
+↓
+Attempt Payment Again
+BOOKING ACTIVATION FLOW
+Payment Verified
+↓
+Booking Status
+Created
+↓
+Dispatch Engine Starts
+↓
+Search Provider
+REFUND FLOW
+Customer Requests Refund
+↓
+Admin Review
+↓
+Approve
+↓
+Razorpay Refund API
+↓
+Refund Completed
+↓
+Notify Customer
+OVERTIME PAYMENT FLOW
+Provider Completes Job
+↓
+Overtime Engine Calculates
+↓
+Additional Amount
+↓
+Customer Pays
+↓
+Provider Settlement Updated
+WEBSOCKET
+Channel:
+/ws/customer/{customer_id}
+Real-time Events:
+Payment Success
+Payment Failure
+Refund Updates
+Booking Activated
+NOTIFICATIONS
+Payment Successful
+Payment Failed
+Refund Approved
+Refund Completed
+Booking Activated
+VALIDATIONS
+Booking Exists
+Amount Matches
+Customer Owns Booking
+Signature Valid
+Payment Not Duplicate
+ERROR HANDLING
+Payment Failed
+Network Failure
+Duplicate Payment
+Verification Failed
+Server Error
+Razorpay Error
+Invalid Booking
+LOADING STATES
+Creating Order
+Payment Processing
+Verifying Payment
+Fetching History
+Requesting Refund
+EMPTY STATES
+No Payments
+No Refunds
+No Transactions
+BUTTON FLOW MATRIX
+Pay Now
+↓
+Create Order
+↓
+Payment Sheet
+↓
+Verification
+↓
+Booking Activated
+Retry
+↓
+Create New Order
+Track Booking
+↓
+Module 5
+Download Receipt
+↓
+PDF Receipt
+Refund Request
+↓
+Refund Workflow
+SECURITY REQUIREMENTS
+JWT Authentication
+Order Verification
+Signature Verification
+Rate Limiting
+Idempotency Protection
+Request Validation
+Audit Logs
+Encrypted Secrets
+PERFORMANCE TARGETS
+Create Order
+<500ms
+Payment Verification
+<1 second
+Payment History
+<1 second
+Refund Processing
+<2 seconds
+TEST CASES
+Payment Success
+Payment Failure
+Retry Payment
+Duplicate Payment
+Invalid Signature
+Refund Request
+Partial Refund
+Network Failure
+Payment History
+WebSocket Updates
+ACCEPTANCE CRITERIA
+Customer can:
+Pay reservation fee.
+View payment history.
+Retry failed payments.
+Request refunds.
+Pay overtime charges.
+Bookings are activated only after successful payment.
+Dispatch starts automatically after payment verification.
+No fake payments.
+No placeholder payment screens.
+Every payment, refund, API, database operation, notification, and Razorpay integration must
+work end-to-end in production.
+
+
+=== MODULE 5 ===
+MODULE 5 PROMPT
+CONSTRUCTO – LIVE TRACKING &
+PROVIDER ARRIVAL SYSTEM
+You are a Senior Software Architect, Senior Backend Engineer, Senior Frontend Engineer,
+Maps Engineer, WebSocket Engineer, Database Architect, and QA Engineer.
+Build Module 5 of Constructo.
+This is NOT a demo map.
+This is a production-ready real-time tracking system.
+PRODUCT
+Constructo
+Professional Site Services Across Kerala
+PURPOSE
+Allow customers to:
+● Track provider movement in real time
+● View estimated arrival time (ETA)
+● View remaining distance
+● Call provider
+● Chat with provider
+● View provider information
+● Receive live booking updates
+Allow providers to:
+● Share live location
+● Navigate to customer
+● Call customer
+● Chat with customer
+● Update arrival status
+IMPORTANT REQUIREMENT
+Customer App and Provider App are:
+SEPARATE APPLICATIONS.
+However they must communicate in real time.
+Exactly like:
+Uber Rider ↔ Uber Driver
+Zomato Customer ↔ Delivery Partner
+MODULE DEPENDENCIES
+Depends On:
+Module 1 → Authentication
+Module 3 → Booking System
+Module 4 → Payment System
+Module 16 → Dispatch Engine
+Module 25 → Communication Engine
+Used By:
+Module 6 → Completion
+Module 8 → Support
+Module 19 → Reliability Engine
+Module 24 → Operations Center
+Module 26 → Master Admin
+ROUTES
+Customer Tracking:
+/customer/tracking/{booking_id}
+Provider Navigation:
+/provider/job/{booking_id}
+TRACKING FLOW
+Customer Creates Booking
+↓
+Provider Accepts
+↓
+Customer Receives Provider Details
+↓
+Provider Shares GPS
+↓
+Customer Tracks Provider
+↓
+Provider Arrives
+↓
+Verification Code
+↓
+Work Starts
+LIVE TRACKING REQUIREMENT
+Customer must see:
+Provider Marker
+Customer Marker
+Animated Route
+ETA
+Distance Remaining
+Provider Information
+Booking Status
+TRACKING SCREEN COMPONENTS
+Map View
+Provider Card
+ETA Card
+Distance Card
+Status Timeline
+Call Button
+Chat Button
+Support Button
+Cancel Button
+PROVIDER CARD
+Display:
+Provider Photo
+Provider Name
+Rating
+Vehicle
+Phone Number
+ETA
+CUSTOMER CONTACT FEATURE
+After booking assignment:
+Display:
+Provider Name
+Provider Phone Number
+Call Button
+Chat Button
+PROVIDER CONTACT FEATURE
+After booking assignment:
+Display:
+Customer Name
+Customer Phone Number
+Call Button
+Chat Button
+PRIVACY RULES
+Before Assignment:
+Hide phone numbers.
+After Assignment:
+Show phone numbers.
+48 hours after completion:
+Hide phone numbers again.
+GPS UPDATE FLOW
+Provider App
+↓
+Get GPS Coordinates
+↓
+Send To Backend
+↓
+Store Latest Coordinates
+↓
+Broadcast Through WebSocket
+↓
+Customer Map Updates
+GPS UPDATE FREQUENCY
+Every:
+15 seconds.
+PROVIDER STATUS
+Assigned
+En Route
+Arrived
+Verified
+In Progress
+Completed
+CUSTOMER STATUS
+Searching
+Assigned
+En Route
+Arrived
+In Progress
+Completed
+Cancelled
+MAP FEATURES
+Provider Marker
+Customer Marker
+Route Polyline
+ETA
+Distance
+Animated Movement
+Dark Map Theme
+ESTIMATED ARRIVAL TIME
+Calculate:
+Current Provider Location
+●
+Traffic Data
+●
+Distance
+↓
+ETA
+Update:
+Every GPS refresh.
+LOCATION PERMISSIONS
+Provider App:
+Location access required.
+If denied:
+Cannot go online.
+Cannot accept bookings.
+FRONTEND COMPONENTS
+TrackingMap
+ProviderCard
+ETACard
+DistanceCard
+StatusTimeline
+CallButton
+ChatButton
+SupportButton
+CancelBookingButton
+DATABASE TABLES
+bookings
+tracking_logs
+notifications
+conversations
+messages
+users
+providers
+TRACKING LOGS TABLE
+id
+booking_id
+provider_id
+latitude
+longitude
+speed
+heading
+recorded_at
+BOOKINGS TABLE ADDITIONS
+provider_arrived_at
+service_started_at
+service_completed_at
+API ENDPOINTS
+POST
+/api/v1/provider/location
+GET
+/api/v1/bookings/{booking_id}/tracking
+POST
+/api/v1/bookings/{booking_id}/arrived
+POST
+/api/v1/bookings/{booking_id}/cancel
+WEBSOCKET CHANNELS
+Tracking:
+/ws/tracking/{booking_id}
+Customer:
+/ws/customer/{customer_id}
+Provider:
+/ws/provider/{provider_id}
+WEBSOCKET EVENTS
+Provider Location Updated
+Provider Accepted
+Provider Arrived
+Booking Cancelled
+ETA Updated
+Service Started
+Service Completed
+PROVIDER ARRIVAL FLOW
+Provider Reaches Site
+↓
+Click:
+I've Arrived
+↓
+Backend Updates Status
+↓
+Customer Notification
+↓
+Verification Code Screen Opens
+VERIFICATION CODE ENGINE
+Purpose:
+Prevent fraud.
+Ensure correct provider reaches customer.
+FLOW
+Provider Accepts Booking
+↓
+Backend Generates
+6 Digit Code
+↓
+Save In Database
+↓
+Display Code To Customer
+↓
+Provider Arrives
+↓
+Customer Shares Code
+↓
+Provider Enters Code
+↓
+Backend Validates
+↓
+Status:
+Verified
+↓
+Service Starts
+DATABASE
+verification_code
+verification_status
+verification_verified_at
+API
+POST
+/api/v1/verification/generate
+POST
+/api/v1/verification/validate
+RULES
+Wrong Code:
+Reject.
+Correct Code:
+Allow Service Start.
+Without Verification:
+Cannot Start Work.
+Cannot Mark In Progress.
+CUSTOMER CANCEL FLOW
+Customer clicks:
+Cancel Booking
+↓
+Check Cancellation Policy
+↓
+Calculate Charges
+↓
+Cancel Booking
+↓
+Notify Provider
+NOTIFICATIONS
+Provider Assigned
+Provider Moving
+Provider Arrived
+Verification Required
+Service Started
+Service Completed
+Booking Cancelled
+ERROR HANDLING
+GPS Permission Denied
+Network Error
+Location Update Failed
+Provider Offline
+WebSocket Disconnected
+Map API Failure
+Verification Failed
+Invalid Code
+LOADING STATES
+Loading Map
+Loading Tracking
+Connecting WebSocket
+Calculating ETA
+EMPTY STATES
+No Provider Assigned
+No GPS Signal
+Provider Offline
+No Route Available
+BUTTON FLOW MATRIX
+Call Provider
+↓
+Phone Dialer
+Chat Provider
+↓
+Module 25
+Cancel Booking
+↓
+Cancellation Workflow
+I've Arrived
+↓
+Verification Screen
+Enter Verification Code
+↓
+Validate
+↓
+Start Work
+SECURITY REQUIREMENTS
+JWT Authentication
+Location Validation
+Booking Ownership Validation
+WebSocket Authentication
+Verification Code Validation
+Rate Limiting
+Audit Logging
+PERFORMANCE TARGETS
+Tracking Update:
+<2 seconds
+ETA Update:
+<2 seconds
+Location Broadcast:
+<1 second
+Verification:
+<500ms
+TEST CASES
+Provider Location Updates
+ETA Calculation
+Tracking Screen Refresh
+Call Provider
+Chat Provider
+GPS Permission Denied
+Network Failure
+Provider Arrival
+Verification Success
+Verification Failure
+Booking Cancellation
+WebSocket Reconnection
+ACCEPTANCE CRITERIA
+Customer can:
+Track provider live.
+See ETA.
+See provider information.
+Call provider.
+Chat with provider.
+Verify provider.
+Provider can:
+Share live location.
+Call customer.
+Chat with customer.
+Mark arrival.
+Start work after verification.
+Everything must work in real time.
+No fake maps.
+No placeholder tracking.
+Every API, WebSocket event, GPS update, notification, verification, and communication flow
+must work end-to-end in production.
+
+
+=== MODULE 6 ===
+MODULE 6 PROMPT
+CONSTRUCTO – SERVICE
+COMPLETION, OVERTIME & INVOICE
+SYSTEM
+You are a Senior Product Manager, Senior Software Architect, Senior Backend Engineer,
+Senior Frontend Engineer, Financial Systems Engineer, Database Architect, and QA
+Engineer.
+Build Module 6 of Constructo.
+This is NOT a demo completion screen.
+This is a production-ready job completion, overtime calculation, invoice generation, and
+settlement initiation system.
+PRODUCT
+Constructo
+Professional Site Services Across Kerala
+PURPOSE
+Allow:
+Customers:
+● View work summary
+● Review overtime charges
+● Pay additional charges
+● Confirm completion
+● Download invoice
+Providers:
+● Mark work complete
+● Upload completion photos
+● Submit additional charges
+● Submit overtime hours
+● Trigger settlement
+IMPORTANT
+Job cannot be completed automatically.
+Customer must confirm completion.
+Provider cannot receive settlement until completion is confirmed.
+MODULE DEPENDENCIES
+Depends On:
+Module 1 → Authentication
+Module 4 → Payment System
+Module 5 → Live Tracking & Verification
+Module 17 → Pricing Engine
+Module 25 → Communication Engine
+USED BY
+Module 7 → Reviews
+Module 14 → Provider Wallet
+Module 19 → Reliability Engine
+Module 22 → Analytics
+Module 24 → Operations Center
+Module 26 → Admin Dashboard
+ROUTES
+Provider Completion:
+/provider/job/{booking_id}/complete
+Customer Completion:
+/customer/booking/{booking_id}/complete
+Invoice:
+/customer/invoice/{booking_id}
+JOB COMPLETION FLOW
+Service Started
+↓
+Provider Completes Work
+↓
+Upload Completion Photos
+↓
+Submit Overtime
+↓
+Customer Reviews Summary
+↓
+Pay Additional Charges
+↓
+Confirm Completion
+↓
+Invoice Generated
+↓
+Provider Settlement Started
+↓
+Review Enabled
+PROVIDER COMPLETION SCREEN
+Display:
+Booking Information
+Customer Information
+Duration Booked
+Work Started Time
+Current Duration
+Additional Hours
+Completion Photos
+Additional Notes
+Buttons:
+Upload Photos
+Submit Overtime
+Mark Work Complete
+COMPLETION PHOTOS
+Purpose:
+Proof of completed work.
+Maximum:
+10 images.
+CLOUDINARY INTEGRATION
+Cloudinary SDK Required.
+Cloudinary MCP Preconfigured.
+Use MCP for:
+● Upload
+● Metadata
+● Asset Management
+● Folder Organization
+Upload Flow
+Provider Upload
+↓
+FastAPI
+↓
+Cloudinary
+↓
+Store URL
+↓
+Save In MySQL
+FOLDER
+constructo/completion_photos/
+OVERTIME ENGINE
+Purpose:
+Calculate extra hours beyond booked duration.
+EXAMPLE
+Booked:
+3 Hours
+Actual:
+4.5 Hours
+Overtime:
+1.5 Hours
+RULES
+Every service category has:
+Base Hourly Rate.
+Overtime Hourly Rate.
+OVERTIME CALCULATION
+Booked Hours
+↓
+Actual Hours
+↓
+Extra Hours
+↓
+Overtime Rate
+↓
+Additional Amount
+OVERTIME TABLE
+id
+booking_id
+booked_hours
+actual_hours
+extra_hours
+overtime_rate
+overtime_amount
+created_at
+ADDITIONAL CHARGES
+Provider may add:
+Additional Equipment
+Extra Materials
+Waiting Charges
+Emergency Charges
+RULE
+Customer must approve all additional charges.
+CUSTOMER COMPLETION SCREEN
+Display:
+Provider Name
+Service Summary
+Booked Hours
+Actual Hours
+Overtime Charges
+Additional Charges
+Completion Photos
+Final Amount
+Buttons:
+Approve Charges
+Pay Additional Amount
+Confirm Completion
+Raise Dispute
+PAYMENT FLOW
+Additional Charges
+↓
+Module 4
+Payment System
+↓
+Payment Success
+↓
+Booking Completed
+INVOICE ENGINE
+Generate:
+Professional PDF Invoice.
+INVOICE DETAILS
+Invoice Number
+Booking Number
+Customer Name
+Provider Name
+Service
+Location
+Booked Hours
+Actual Hours
+Charges Breakdown
+Taxes
+Total Paid
+Payment Details
+Completion Date
+INVOICE STATUS
+Generated
+Downloaded
+Sent
+DATABASE TABLES
+bookings
+completion_photos
+overtime_charges
+payments
+invoices
+notifications
+COMPLETION PHOTOS TABLE
+id
+booking_id
+cloudinary_public_id
+cloudinary_secure_url
+metadata_json
+created_at
+INVOICES TABLE
+id
+booking_id
+invoice_number
+subtotal
+tax_amount
+total_amount
+pdf_url
+created_at
+BOOKINGS TABLE ADDITIONS
+completed_at
+customer_confirmed_at
+completion_notes
+completion_status
+COMPLETION STATUS
+Pending
+Awaiting Payment
+Completed
+Disputed
+Cancelled
+API ENDPOINTS
+POST
+/api/v1/bookings/{booking_id}/complete
+POST
+/api/v1/bookings/{booking_id}/overtime
+POST
+/api/v1/bookings/{booking_id}/upload-completion-photo
+GET
+/api/v1/bookings/{booking_id}/summary
+POST
+/api/v1/bookings/{booking_id}/confirm
+GET
+/api/v1/invoices/{booking_id}
+BACKEND FLOW
+Provider Marks Complete
+↓
+Validate Booking
+↓
+Calculate Overtime
+↓
+Calculate Additional Charges
+↓
+Upload Photos
+↓
+Generate Summary
+↓
+Customer Reviews
+↓
+Additional Payment
+↓
+Generate Invoice
+↓
+Complete Booking
+↓
+Enable Reviews
+↓
+Trigger Settlement
+SETTLEMENT FLOW
+Customer Confirms Completion
+↓
+Booking Status
+Completed
+↓
+Provider Wallet Updated
+↓
+Settlement Created
+↓
+Module 14
+Wallet & Payout
+WEBSOCKET EVENTS
+Work Completed
+Additional Charges Added
+Invoice Generated
+Completion Confirmed
+Settlement Initiated
+WEBSOCKET CHANNELS
+/ws/customer/{customer_id}
+/ws/provider/{provider_id}
+NOTIFICATIONS
+Provider Completed Work
+Additional Payment Required
+Payment Successful
+Invoice Generated
+Booking Completed
+Review Available
+VALIDATIONS
+Booking Exists
+Booking Completed Status
+Additional Charges Validation
+Overtime Validation
+Photo Validation
+Payment Validation
+Customer Ownership Validation
+ERROR HANDLING
+Payment Failed
+Upload Failed
+Invoice Generation Failed
+Network Error
+Duplicate Completion
+Invalid Charges
+Customer Dispute
+LOADING STATES
+Generating Invoice
+Uploading Photos
+Calculating Charges
+Confirming Completion
+Downloading Invoice
+EMPTY STATES
+No Completion Photos
+No Additional Charges
+No Overtime
+No Invoice
+BUTTON FLOW MATRIX
+Upload Completion Photos
+↓
+Cloudinary
+Submit Overtime
+↓
+Overtime Engine
+Pay Additional Amount
+↓
+Module 4
+Confirm Completion
+↓
+Generate Invoice
+↓
+Settlement
+↓
+Module 7
+Reviews
+Raise Dispute
+↓
+Module 8
+Support System
+Download Invoice
+↓
+PDF Invoice
+SECURITY REQUIREMENTS
+JWT Authentication
+Booking Ownership Validation
+Charge Validation
+Payment Validation
+Cloudinary Validation
+Audit Logs
+Role Permissions
+PERFORMANCE TARGETS
+Completion Summary:
+<1 second
+Invoice Generation:
+<2 seconds
+Overtime Calculation:
+<500ms
+Photo Upload:
+<3 seconds
+TEST CASES
+Completion Without Overtime
+Completion With Overtime
+Additional Charges
+Invoice Generation
+Photo Upload
+Customer Confirmation
+Payment Failure
+Settlement Creation
+Dispute Creation
+Invoice Download
+ACCEPTANCE CRITERIA
+Provider can:
+Mark work complete.
+Upload proof photos.
+Submit overtime.
+Add additional charges.
+Customer can:
+Review work summary.
+Pay additional charges.
+Confirm completion.
+Download invoice.
+Raise disputes.
+Booking completion automatically:
+Generates invoice.
+Updates wallet.
+Enables reviews.
+Triggers settlement.
+No fake invoices.
+No placeholder completion screens.
+Every API, database operation, Cloudinary upload, payment, settlement, notification, and
+invoice generation must work end-to-end in production.
+
+
+=== MODULE 7 ===
+MODULE 7 PROMPT
+CONSTRUCTO – REVIEWS, RATINGS &
+FEEDBACK SYSTEM
+You are a Senior Product Manager, Senior Software Architect, Senior Backend Engineer,
+Senior Frontend Engineer, Database Architect, and QA Engineer.
+Build Module 7 of Constructo.
+This is NOT a simple review form.
+This is a production-ready Reviews, Ratings, and Feedback System that directly impacts:
+● Provider Ranking
+● Reliability Score
+● Dispatch Priority
+● Provider Reputation
+● Customer Trust
+PRODUCT
+Constructo
+Professional Site Services Across Kerala
+PURPOSE
+Allow customers to:
+● Rate providers
+● Write reviews
+● Upload review photos
+● Report issues
+● Submit feedback
+Allow the platform to:
+● Calculate provider ratings
+● Update provider reliability
+● Improve dispatch decisions
+● Identify poor-performing providers
+IMPORTANT RULES
+Only customers with completed bookings can review.
+One booking = One review.
+No anonymous reviews.
+No duplicate reviews.
+MODULE DEPENDENCIES
+Depends On:
+Module 1 → Authentication
+Module 6 → Completion & Invoice
+USED BY
+Module 16 → Dispatch Engine
+Module 19 → Reliability & Ranking Engine
+Module 22 → Analytics Engine
+Module 24 → Operations Center
+Module 26 → Master Admin Dashboard
+ROUTES
+/customer/review/{booking_id}
+/customer/reviews
+/provider/reviews
+REVIEW FLOW
+Booking Completed
+↓
+Customer Receives Review Notification
+↓
+Open Review Screen
+↓
+Rate Provider
+↓
+Add Feedback
+↓
+Upload Photos
+↓
+Submit Review
+↓
+Provider Rating Updated
+↓
+Reliability Score Updated
+↓
+Dispatch Ranking Updated
+CUSTOMER REVIEW SCREEN
+Display:
+Provider Photo
+Provider Name
+Vehicle Information
+Service Category
+Booking Number
+Completion Date
+RATING CATEGORIES
+Professionalism
+Communication
+Service Quality
+Timeliness
+Overall Experience
+RATING SCALE
+1 Star
+2 Stars
+3 Stars
+4 Stars
+5 Stars
+REVIEW FORM
+Fields:
+Overall Rating
+Category Ratings
+Review Text
+Upload Photos
+Would Recommend? (Yes/No)
+Issue Report (Optional)
+REVIEW PHOTOS
+Purpose:
+Allow customers to upload work results.
+Maximum:
+5 images.
+CLOUDINARY INTEGRATION
+Cloudinary SDK Required.
+Cloudinary MCP Preconfigured.
+Use MCP for:
+● Image Upload
+● Asset Metadata
+● Folder Management
+Upload Flow
+Customer Upload
+↓
+FastAPI
+↓
+Cloudinary
+↓
+Save URLs
+↓
+Store In MySQL
+FOLDER
+constructo/reviews/
+FRONTEND COMPONENTS
+ReviewHeader
+ProviderCard
+RatingStars
+CategoryRatings
+TextReview
+PhotoUploader
+RecommendToggle
+IssueCheckbox
+SubmitReviewButton
+PROVIDER REVIEW SCREEN
+Display:
+Average Rating
+Total Reviews
+Category Ratings
+Recent Reviews
+Review Photos
+Rating Trend
+REVIEW STATUS
+Pending
+Submitted
+Edited
+Reported
+Hidden
+DATABASE TABLES
+reviews
+review_photos
+providers
+bookings
+notifications
+REVIEWS TABLE
+id
+booking_id
+customer_id
+provider_id
+overall_rating
+professionalism_rating
+communication_rating
+service_quality_rating
+timeliness_rating
+review_text
+would_recommend
+status
+created_at
+updated_at
+REVIEW PHOTOS TABLE
+id
+review_id
+cloudinary_public_id
+cloudinary_secure_url
+metadata_json
+created_at
+PROVIDERS TABL
+<truncated 367174 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.
