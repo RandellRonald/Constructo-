@@ -10,6 +10,7 @@ from app.models.review import Review, ReviewPhoto
 from app.models.invoice import Invoice
 from app.models.payout import Payout, ProviderEarning
 from app.models.chat import ChatMessage
+from app.models.support import SupportTicket
 
 __all__ = [
     "User", "OTPVerification", "UserSession", "Notification", "SavedLocation",
@@ -21,4 +22,5 @@ __all__ = [
     "Invoice",
     "Payout", "ProviderEarning",
     "ChatMessage",
+    "SupportTicket",
 ]

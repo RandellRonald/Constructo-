@@ -69,7 +69,7 @@ interface ServiceCategory {
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const { logout, user } = useAuthStore()
-  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'bookings' | 'payouts' | 'services' | 'analytics' | 'tracking'>('stats')
+  const [activeTab, setActiveTab] = useState<'stats' | 'users' | 'bookings' | 'payouts' | 'services' | 'analytics' | 'tracking' | 'disputes'>('stats')
 
   // Data states
   const [stats, setStats] = useState<Stats | null>(null)
@@ -79,6 +79,7 @@ export default function AdminDashboard() {
   const [services, setServices] = useState<ServiceCategory[]>([])
   const [analyticsData, setAnalyticsData] = useState<any>(null)
   const [liveTrackingData, setLiveTrackingData] = useState<any[]>([])
+  const [disputes, setDisputes] = useState<any[]>([])
 
   // Filters & Loading
   const [loading, setLoading] = useState(true)
@@ -139,6 +140,9 @@ export default function AdminDashboard() {
       } else if (activeTab === 'tracking') {
         const res = await adminAPI.getLiveTracking()
         if (res.data.success) setLiveTrackingData(res.data.data)
+      } else if (activeTab === 'disputes') {
+        const res = await adminAPI.getDisputes()
+        if (res.data.success) setDisputes(res.data.data)
       }
     } catch (err) {
       console.error('Failed to fetch data:', err)
@@ -352,6 +356,14 @@ export default function AdminDashboard() {
               }`}
             >
               <Map className="w-4 h-4" /> Live Tracking
+            </button>
+            <button
+              onClick={() => setActiveTab('disputes')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+                activeTab === 'disputes' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" /> Disputes Queue
             </button>
           </nav>
         </div>
@@ -1249,6 +1261,82 @@ export default function AdminDashboard() {
                           )}
                         </svg>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── TAB: DISPUTES ─── */}
+                {activeTab === 'disputes' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-slate-900 p-5 rounded-2xl border border-white/5">
+                      <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                        Disputes Queue
+                      </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      {disputes.length === 0 ? (
+                        <div className="p-8 text-center bg-slate-900 border border-white/5 rounded-2xl">
+                          <p className="text-slate-400 text-sm">No disputes found in the queue.</p>
+                        </div>
+                      ) : (
+                        disputes.map(ticket => (
+                          <div key={ticket.id} className="bg-slate-900 border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
+                                  ticket.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
+                                  ticket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-500' :
+                                  'bg-slate-500/10 text-slate-500'
+                                }`}>
+                                  {ticket.status}
+                                </span>
+                                <span className="text-slate-400 text-xs">Booking #{ticket.booking_id}</span>
+                              </div>
+                              <p className="font-semibold text-white text-sm">{ticket.dispute_reason}</p>
+                            </div>
+                            
+                            {ticket.status === 'pending' && (
+                              <div className="flex gap-2 shrink-0">
+                                <button
+                                  onClick={async () => {
+                                    if(confirm('Approve refund?')) {
+                                      await adminAPI.resolveDispute(ticket.id, 'approve_refund')
+                                      fetchTabContent()
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-xs font-bold transition-colors"
+                                >
+                                  Approve Refund
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if(confirm('Reject refund?')) {
+                                      await adminAPI.resolveDispute(ticket.id, 'reject_refund')
+                                      fetchTabContent()
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 text-xs font-bold transition-colors"
+                                >
+                                  Reject Refund
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if(confirm('Close ticket?')) {
+                                      await adminAPI.resolveDispute(ticket.id, 'close_ticket')
+                                      fetchTabContent()
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-white/5 text-white hover:bg-white/10 text-xs font-bold transition-colors"
+                                >
+                                  Close
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}

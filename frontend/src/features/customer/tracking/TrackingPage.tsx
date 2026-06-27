@@ -16,6 +16,10 @@ export default function TrackingPage() {
   const [trackingData, setTrackingData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showChat, setShowChat] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showDisputeModal, setShowDisputeModal] = useState(false)
+  const [disputeReason, setDisputeReason] = useState('Provider did not arrive')
+  const [cancelReason, setCancelReason] = useState('Provider delayed')
   const [providerLoc, setProviderLoc] = useState<{ lat: number; lng: number; heading?: number; speed?: number } | null>(null)
   const [eta, setEta] = useState<number | null>(null)
   const [distance, setDistance] = useState<number | null>(null)
@@ -261,15 +265,102 @@ export default function TrackingPage() {
         </motion.div>
 
         {/* Support Call Back */}
-        <button
-          onClick={() => alert("Constructo Support helpline: 1800-456-7890")}
-          className="w-full py-3 rounded-xl text-xs font-bold text-danger bg-danger/5 border border-danger/20 hover:bg-danger/10 transition-colors"
-        >
-          Cancel or Dispute Booking
-        </button>
+        {['created', 'searching', 'assigned', 'en_route'].includes(trackingData?.booking_status) && (
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="w-full py-3 rounded-xl text-xs font-bold text-danger bg-danger/5 border border-danger/20 hover:bg-danger/10 transition-colors mb-2"
+          >
+            Cancel Booking
+          </button>
+        )}
+        
+        {['arrived', 'verified', 'in_progress', 'completed'].includes(trackingData?.booking_status) && (
+          <button
+            onClick={() => setShowDisputeModal(true)}
+            className="w-full py-3 rounded-xl text-xs font-bold text-danger bg-danger/5 border border-danger/20 hover:bg-danger/10 transition-colors mb-2"
+          >
+            Raise Dispute
+          </button>
+        )}
       </div>
 
       <AnimatePresence>
+        {showCancelModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#1e293b] rounded-3xl p-6 w-full max-w-sm border border-white/10 shadow-2xl">
+              <h2 className="text-xl font-bold mb-4">Cancel Booking</h2>
+              <p className="text-sm text-text-muted mb-4">Are you sure you want to cancel this booking?</p>
+              <textarea 
+                className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm mb-4" 
+                rows={3} 
+                placeholder="Reason (e.g. Provider delayed)"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+              <div className="flex gap-3">
+                <button onClick={() => setShowCancelModal(false)} className="flex-1 py-3 bg-white/5 rounded-xl font-bold text-sm">Back</button>
+                <button 
+                  onClick={async () => {
+                    try {
+                      await fetch(`/api/v1/bookings/${bookingId}/cancel`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                        body: JSON.stringify({ reason: cancelReason })
+                      });
+                      alert('Booking cancelled successfully.');
+                      navigate('/customer/dashboard');
+                    } catch (e) {
+                      alert('Failed to cancel');
+                    }
+                  }} 
+                  className="flex-1 py-3 bg-danger text-white rounded-xl font-bold text-sm"
+                >
+                  Confirm Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showDisputeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#1e293b] rounded-3xl p-6 w-full max-w-sm border border-white/10 shadow-2xl">
+              <h2 className="text-xl font-bold mb-4">Raise Dispute</h2>
+              <p className="text-sm text-text-muted mb-4">Please select a reason for the dispute.</p>
+              <select 
+                className="w-full bg-black/20 border border-white/10 rounded-xl p-3 text-sm mb-4"
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+              >
+                <option value="Provider did not arrive">Provider did not arrive</option>
+                <option value="Wrong service">Wrong service</option>
+                <option value="Payment issue">Payment issue</option>
+                <option value="Other">Other</option>
+              </select>
+              <div className="flex gap-3">
+                <button onClick={() => setShowDisputeModal(false)} className="flex-1 py-3 bg-white/5 rounded-xl font-bold text-sm">Back</button>
+                <button 
+                  onClick={async () => {
+                    try {
+                      await fetch(`/api/v1/support/dispute`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                        body: JSON.stringify({ booking_id: Number(bookingId), reason: disputeReason })
+                      });
+                      alert('Dispute raised successfully.');
+                      setShowDisputeModal(false);
+                    } catch (e) {
+                      alert('Failed to raise dispute');
+                    }
+                  }} 
+                  className="flex-1 py-3 bg-danger text-white rounded-xl font-bold text-sm"
+                >
+                  Submit Dispute
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
         {showChat && bookingId && (
           <ChatInterface
             bookingId={Number(bookingId)}

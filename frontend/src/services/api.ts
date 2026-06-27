@@ -154,6 +154,9 @@ export const adminAPI = {
   getServices: () => api.get('/admin/services'),
   createService: (data: Record<string, unknown>) => api.post('/admin/services', data),
   updateService: (id: number, data: Record<string, unknown>) => api.put(`/admin/services/${id}`, data),
+  deleteService: (id: number) => api.delete(`/admin/services/${id}`),
+  getDisputes: () => api.get('/support/disputes'),
+  resolveDispute: (ticketId: number, action: string) => api.post(`/support/disputes/${ticketId}/resolve`, { action }),
   getAnalytics: () => api.get('/admin/analytics'),
   getLiveTracking: () => api.get('/admin/live-tracking'),
 }

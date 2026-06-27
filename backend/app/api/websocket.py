@@ -132,9 +132,19 @@ async def chat_websocket(websocket: WebSocket, booking_id: int):
 
             # Save message to database
             async with AsyncSessionLocal() as db:
+                from app.models.booking import Booking
+                from sqlalchemy import select
+                res = await db.execute(select(Booking).where(Booking.id == booking_id))
+                booking = res.scalar_one_or_none()
+                receiver_id = 0
+                if booking:
+                    # If sender is customer, receiver is provider. Else, customer.
+                    receiver_id = booking.provider_id if int(sender_id) == booking.customer_id else booking.customer_id
+
                 chat_msg = ChatMessage(
                     booking_id=booking_id,
                     sender_id=int(sender_id),
+                    receiver_id=receiver_id,
                     message=text_message
                 )
                 db.add(chat_msg)
@@ -144,10 +154,23 @@ async def chat_websocket(websocket: WebSocket, booking_id: int):
 
             # Broadcast back to room
             await manager.send_to_channel(channel, {
+                "type": "chat_message",
+                "booking_id": booking_id,
                 "sender_id": sender_id,
+                "receiver_id": receiver_id,
                 "message": text_message,
                 "created_at": created_at_str
             })
     except WebSocketDisconnect:
         manager.disconnect(websocket, channel)
 
+
+@router.websocket("/ws/notifications/{user_id}")
+async def notifications_websocket(websocket: WebSocket, user_id: int):
+    channel = f"notifications_{user_id}"
+    await manager.connect(websocket, channel)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, channel)

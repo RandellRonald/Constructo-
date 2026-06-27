@@ -16,7 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.core.config import settings
-from app.api.routes import auth, customer, bookings, services, payments, tracking, completion, reviews, provider, admin, maps
+from app.api.routes import auth, customer, bookings, services, payments, tracking, completion, reviews, provider, admin, maps, support
 from app.db.session import engine
 from app.db.base import Base
 from app.api.websocket import router as ws_router
@@ -81,6 +81,7 @@ app.include_router(reviews.router, prefix="/api/v1", tags=["Reviews"])
 app.include_router(provider.router, prefix="/api/v1", tags=["Provider"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(maps.router, prefix="/api/v1/maps", tags=["Maps"])
+app.include_router(support.router, prefix="/api/v1/support", tags=["Support"])
 
 # ─── WebSocket Routes ────────────────────────────────────────────────
 app.include_router(ws_router)

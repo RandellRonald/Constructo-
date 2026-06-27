@@ -23,6 +23,15 @@ class LocationUpdate(BaseModel):
     heading: float = 0
 
 
+class TrackingUpdatePayload(BaseModel):
+    booking_id: int
+    provider_id: int
+    lat: float
+    lng: float
+    heading: float = 0
+    speed: float = 0
+
+
 class VerifyCodeRequest(BaseModel):
     code: str
 
@@ -42,6 +51,31 @@ async def update_provider_location(
         provider_id=user.id,
         latitude=request.latitude,
         longitude=request.longitude,
+        speed=request.speed,
+        heading=request.heading
+    )
+    
+    return APIResponse(
+        success=True,
+        message="Location updated",
+        data=payload
+    )
+
+
+@router.post("/update", response_model=APIResponse)
+async def update_tracking(
+    request: TrackingUpdatePayload,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update provider GPS location (used by provider app)."""
+    from app.services.tracking_service import TrackingService
+    
+    payload = await TrackingService.process_location_update(
+        db=db,
+        booking_id=request.booking_id,
+        provider_id=request.provider_id,
+        latitude=request.lat,
+        longitude=request.lng,
         speed=request.speed,
         heading=request.heading
     )

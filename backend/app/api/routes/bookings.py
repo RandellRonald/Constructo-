@@ -358,7 +358,20 @@ async def cancel_booking(
 
     booking.status = BookingStatus.CANCELLED
     booking.cancelled_at = datetime.now(timezone.utc)
-    await db.flush()
+    
+    if not refund_eligible:
+        from app.models.support import SupportTicket, TicketStatus
+        ticket = SupportTicket(
+            booking_id=booking.id,
+            dispute_reason="Cancelled after provider acceptance",
+            status=TicketStatus.PENDING
+        )
+        db.add(ticket)
+
+    await db.commit()
+
+    from app.api.websocket import manager
+    await manager.broadcast({"type": "booking_cancelled", "booking_id": booking.id})
 
     return APIResponse(
         success=True,
