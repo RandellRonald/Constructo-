@@ -113,7 +113,8 @@ async def verify_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
     # Verify signature
-    if settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET:
+    is_dev_payment = settings.ENVIRONMENT == "development" and request.razorpay_payment_id.startswith("pay_dev_")
+    if settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET and not is_dev_payment:
         import razorpay
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
         try:

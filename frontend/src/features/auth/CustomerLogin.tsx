@@ -92,7 +92,7 @@ export default function CustomerLogin() {
             <div>
               <label className="block text-sm font-medium mb-1.5">Email or Phone</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-muted" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
                   {...register('identifier')}
                   type="text"
@@ -107,7 +107,7 @@ export default function CustomerLogin() {
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-muted" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
@@ -119,7 +119,7 @@ export default function CustomerLogin() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {errors.password && <p className="text-danger text-xs mt-1">{errors.password.message}</p>}
@@ -154,8 +154,8 @@ export default function CustomerLogin() {
           </div>
 
           {/* OTP Login */}
-          <button className="w-full py-3 rounded-xl font-semibold border border-border hover:bg-black/5 transition-all flex items-center justify-center gap-2 text-sm">
-            <Phone className="w-4 h-4" /> Login with OTP
+          <button type="button" className="w-full py-3 rounded-xl font-semibold border border-border hover:bg-black/5 transition-all flex items-center justify-center gap-2 text-sm">
+            <Phone className="w-5 h-5" /> Login with OTP
           </button>
 
           {/* Register Link */}

@@ -1,0 +1,279 @@
+{
+  "results": [
+    {
+      "test": "Health Check",
+      "status": "PASS",
+      "detail": "Backend healthy: {'status': 'healthy', 'service': 'constructo-api', 'version': '1.0.0'}"
+    },
+    {
+      "test": "Customer Registration",
+      "status": "PASS",
+      "detail": "User ID: 22"
+    },
+    {
+      "test": "Customer Login",
+      "status": "PASS",
+      "detail": "Token received, role=customer"
+    },
+    {
+      "test": "Customer Session /me",
+      "status": "PASS",
+      "detail": "User: Test Customer 1782641024"
+    },
+    {
+      "test": "Token Refresh",
+      "status": "PASS",
+      "detail": "New token received"
+    },
+    {
+      "test": "Provider Registration",
+      "status": "PASS",
+      "detail": "User ID: 23"
+    },
+    {
+      "test": "Provider Login",
+      "status": "PASS",
+      "detail": "Token received, role=provider"
+    },
+    {
+      "test": "Provider Dashboard",
+      "status": "PASS",
+      "detail": "Stats: {\n\"today_completed\": 0,\n\"today_earnings\": 0.0,\n\"total_earnings\": 0.0,\n\"wallet_balance\": 0.0,\n\"averag"
+    },
+    {
+      "test": "Admin Login",
+      "status": "PASS",
+      "detail": "role=admin"
+    },
+    {
+      "test": "Admin Dashboard",
+      "status": "PASS",
+      "detail": "Data keys: ['total_users', 'total_bookings', 'total_revenue', 'active_providers']"
+    },
+    {
+      "test": "Approve Provider",
+      "status": "PASS",
+      "detail": "Provider ID 23 activated"
+    },
+    {
+      "test": "Get Services",
+      "status": "PASS",
+      "detail": "3 services found"
+    },
+    {
+      "test": "Calculate Price",
+      "status": "PASS",
+      "detail": "Base: Rs.3000.0, Total: Rs.None"
+    },
+    {
+      "test": "Create Booking",
+      "status": "PASS",
+      "detail": "Booking #CON-519CE90D, ID: 7"
+    },
+    {
+      "test": "Get Active Booking",
+      "status": "PASS",
+      "detail": "Status: payment_pending"
+    },
+    {
+      "test": "Create Payment Order",
+      "status": "PASS",
+      "detail": "Order: order_T70mkf9sDd3TcN"
+    },
+    {
+      "test": "Verify Payment",
+      "status": "PASS",
+      "detail": "Booking status: searching"
+    },
+    {
+      "test": "Payment History",
+      "status": "PASS",
+      "detail": "1 payments found"
+    },
+    {
+      "test": "Get Provider Offers",
+      "status": "PASS",
+      "detail": "0 offers found"
+    },
+    {
+      "test": "Accept Offer",
+      "status": "SKIP",
+      "detail": "No offers available for this provider"
+    },
+    {
+      "test": "Get Active Job",
+      "status": "SKIP",
+      "detail": "No active job found (dispatch may not have assigned)"
+    },
+    {
+      "test": "Provider Location Update",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "Get Tracking Data",
+      "status": "PASS",
+      "detail": "Provider location: {'latitude': 9.932, 'longitude': 76.268, 'speed': 30.0, 'heading': 45.0, 'recorded_at': '2026-06-28T10:04:32.549750'}"
+    },
+    {
+      "test": "WS Customer",
+      "status": "PASS",
+      "detail": "Connected to /ws/customer/22"
+    },
+    {
+      "test": "WS Provider",
+      "status": "PASS",
+      "detail": "Connected to /ws/provider/23"
+    },
+    {
+      "test": "WS Tracking",
+      "status": "PASS",
+      "detail": "Connected to /ws/tracking/7"
+    },
+    {
+      "test": "WS Chat",
+      "status": "PASS",
+      "detail": "Connected to /ws/chat/7"
+    },
+    {
+      "test": "WS Notifications",
+      "status": "PASS",
+      "detail": "Connected to /ws/notifications/22"
+    },
+    {
+      "test": "Chat History",
+      "status": "PASS",
+      "detail": "0 messages"
+    },
+    {
+      "test": "Submit Review",
+      "status": "FAIL",
+      "detail": "404: {\"detail\":\"Completed booking not found\"}"
+    },
+    {
+      "test": "Get Provider Reviews",
+      "status": "PASS",
+      "detail": "Avg: 0, Total: 0"
+    },
+    {
+      "test": "Create Booking for Cancel",
+      "status": "PASS",
+      "detail": "ID: 8"
+    },
+    {
+      "test": "Cancel Booking",
+      "status": "PASS",
+      "detail": "Refund eligible: True"
+    },
+    {
+      "test": "Create Dispute",
+      "status": "PASS",
+      "detail": "Ticket ID: 3"
+    },
+    {
+      "test": "Admin Get Disputes",
+      "status": "PASS",
+      "detail": "3 disputes"
+    },
+    {
+      "test": "Customer Dashboard",
+      "status": "PASS",
+      "detail": "Keys: ['user', 'active_booking', 'recent_bookings', 'unread_notifications', 'notifications', 'saved_locations']"
+    },
+    {
+      "test": "Customer Notifications",
+      "status": "PASS",
+      "detail": "1 notifications"
+    },
+    {
+      "test": "Customer Booking History",
+      "status": "PASS",
+      "detail": "2 bookings"
+    },
+    {
+      "test": "Provider Job History",
+      "status": "PASS",
+      "detail": "0 jobs"
+    },
+    {
+      "test": "Provider Wallet",
+      "status": "PASS",
+      "detail": "Balance: Rs.0.0"
+    },
+    {
+      "test": "Set Bank Details",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "Get Bank Details",
+      "status": "PASS",
+      "detail": "Bank: State Bank of India"
+    },
+    {
+      "test": "Update Profile",
+      "status": "PASS",
+      "detail": "New name: Updated Customer 1782641024"
+    },
+    {
+      "test": "Reverse Geocode",
+      "status": "PASS",
+      "detail": "Address: MDR, Aishwarya Nagar, Thoppumpady, Kochi, Ernakulam, Kerala,"
+    },
+    {
+      "test": "Admin List Users",
+      "status": "PASS",
+      "detail": "17 users"
+    },
+    {
+      "test": "Admin List Bookings",
+      "status": "PASS",
+      "detail": "Data received"
+    },
+    {
+      "test": "Admin Get Services",
+      "status": "PASS",
+      "detail": "3 services"
+    },
+    {
+      "test": "Admin Analytics",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "test": "Send OTP",
+      "status": "PASS",
+      "detail": "OTP: 477345 (dev mode)"
+    },
+    {
+      "test": "Verify OTP",
+      "status": "PASS",
+      "detail": "Phone verified"
+    },
+    {
+      "test": "Customer Logout",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "bugs": [
+    {
+      "id": "BUG-015b",
+      "severity": "Major",
+      "desc": "Dispatch engine did not create offer for registered provider"
+    },
+    {
+      "id": "BUG-016",
+      "severity": "Major",
+      "desc": "No active job for provider after offer flow"
+    }
+  ],
+  "summary": {
+    "total": 51,
+    "passed": 48,
+    "failed": 1,
+    "skipped": 2,
+    "rate": "94.1%",
+    "timestamp": "2026-06-28T15:35:33.682333"
+  }
+}

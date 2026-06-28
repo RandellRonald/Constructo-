@@ -83,7 +83,7 @@ export default function ProviderLogin() {
             <div>
               <label className="block text-sm font-medium mb-1.5">Email or Phone</label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-muted" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input {...register('identifier')} type="text" placeholder="Enter email or phone" className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/60 border border-border focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-sm transition-all" />
               </div>
               {errors.identifier && <p className="text-danger text-xs mt-1">{errors.identifier.message}</p>}
@@ -92,10 +92,10 @@ export default function ProviderLogin() {
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-text-muted" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
                 <input {...register('password')} type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full pl-11 pr-11 py-3 rounded-xl bg-white/60 border border-border focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-sm transition-all" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary">
-                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {errors.password && <p className="text-danger text-xs mt-1">{errors.password.message}</p>}
@@ -116,8 +116,8 @@ export default function ProviderLogin() {
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <button className="w-full py-3 rounded-xl font-semibold border border-border hover:bg-black/5 transition-all flex items-center justify-center gap-2 text-sm">
-            <Phone className="w-4 h-4" /> Login with OTP
+          <button type="button" className="w-full py-3 rounded-xl font-semibold border border-border hover:bg-black/5 transition-all flex items-center justify-center gap-2 text-sm">
+            <Phone className="w-5 h-5" /> Login with OTP
           </button>
 
           <p className="text-center text-sm text-text-secondary mt-6">
